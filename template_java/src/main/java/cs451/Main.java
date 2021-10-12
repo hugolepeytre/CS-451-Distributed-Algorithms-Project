@@ -1,18 +1,15 @@
 package cs451;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Socket;
+import java.io.File;
+import java.net.SocketException;
 
 public class Main {
+    private static PerfectLink link;
 
     private static void handleSignal() {
-        //immediately stop network packet processing
         System.out.println("Immediately stopping network packet processing.");
-
-        //write/flush output file if necessary
         System.out.println("Writing output.");
+        link.writeOutput();
     }
 
     private static void initSignalHandlers() {
@@ -28,41 +25,51 @@ public class Main {
         Parser parser = new Parser(args);
         parser.parse();
 
-        initSignalHandlers();
-
-        // example
+        // Print stuff
         long pid = ProcessHandle.current().pid();
         System.out.println("My PID: " + pid + "\n");
-        System.out.println("From a new terminal type `kill -SIGINT " + pid + "` or `kill -SIGTERM " + pid + "` to stop processing packets\n");
 
-        System.out.println("My ID: " + parser.myId() + "\n");
-        System.out.println("List of resolved hosts is:");
-        System.out.println("==========================");
+        System.out.println("Creating process\n");
+
+        int id = parser.myId();
+        String[] instructions = parser.instructions().split(" ");
+        int receiver = Integer.parseInt(instructions[0]);
+        int n = Integer.parseInt(instructions[1]);
+        int[] portToId = new int[1000];
         for (Host host: parser.hosts()) {
-            System.out.println(host.getId());
-            System.out.println("Human-readable IP: " + host.getIp());
-            System.out.println("Human-readable Port: " + host.getPort());
-            System.out.println();
+            portToId[host.getPort() - 11000] = host.getId();
         }
-        System.out.println();
+        boolean isReceiver = receiver == id;
 
-        System.out.println("Path to output:");
-        System.out.println("===============");
-        System.out.println(parser.output() + "\n");
+        if (isReceiver) {
+            deletePreviousOutputs();
+            int port = parser.hosts().get(id - 1).getPort();
+            try {
+                link = new PerfectLinkReceiver(port, id, portToId);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            int sendPort = parser.hosts().get(receiver - 1).getPort();
+            int port = parser.hosts().get(id - 1).getPort();
+            try {
+                link = new PerfectLinkSender(sendPort, port, id, n);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
 
-        System.out.println("Path to config:");
-        System.out.println("===============");
-        System.out.println(parser.config() + "\n");
-
-        System.out.println("Doing some initialization\n");
+        initSignalHandlers();
 
         System.out.println("Broadcasting and delivering messages...\n");
+        link.run();
+    }
 
-        // After a process finishes broadcasting,
-        // it waits forever for the delivery of messages.
-        while (true) {
-            // Sleep for 1 hour
-            Thread.sleep(60 * 60 * 1000);
-        }
+    private static void deletePreviousOutputs() {
+        File dir = new File("../config_files/outputs");
+        for(File file: dir.listFiles())
+            if (!file.isDirectory())
+                file.delete();
     }
 }

@@ -66,8 +66,8 @@ public class Parser {
         return outputParser.getPath();
     }
 
-    public String config() {
-        return configParser.getPath();
-    }
+    public String config() { return configParser.getPath(); }
+
+    public String instructions() { return configParser.getInstructions(); }
 
 }
