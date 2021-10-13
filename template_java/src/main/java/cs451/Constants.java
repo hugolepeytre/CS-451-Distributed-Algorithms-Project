@@ -17,4 +17,8 @@ public class Constants {
 
     // indexes for config
     public static final int CONFIG_VALUE = 6;
+
+    public static final int PORTS_WIDTH = 1000;
+    public static final int PORTS_BEGIN = 11000;
+    public static final String ACK = "ack";
 }

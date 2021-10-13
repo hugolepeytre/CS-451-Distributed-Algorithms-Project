@@ -23,7 +23,7 @@ class TC:
         atexit.register(self.cleanup)
 
     def __str__(self):
-        ret = """\
+        ret = """
         Interface: {}
           Distribution: Normal
           Delay: {} {}
