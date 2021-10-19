@@ -13,16 +13,13 @@ import java.nio.file.StandardOpenOption;
 import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
+// TODO : No close after runReceiver
 // TODO : Test using stress
 // TODO : Benchmark ?
 // TODO : Check Inet Address parsing
-// TODO : Concurrency
-// Question : Does my perfect link have to be able to listen and send in parallel ?
-// Question : Should I log two messages with the same payload if they are meant to be different ?
-// Question : Inet Address parsing ?
-// Question : Should I be able to listen for messages and send in parallel ? What about concurrency, deadlocks... ?
+
 public class Main {
-    private static PerfectLink link;
+    private static LinkLayer link;
 
     private static void handleSignal() {
         System.out.println("Immediately stopping network packet processing.");
@@ -65,12 +62,13 @@ public class Main {
     }
 
     private static void runSender(Parser parser, int id, int n, int receiverId, int[] portToID) {
+        // TODO : Get address to send to
         int sendPort = parser.hosts().get(receiverId - 1).getPort();
         int port = parser.hosts().get(id - 1).getPort();
         try {
-            link = new PerfectLink(port, id, portToID);
+            link = new DummyLayer(port, id, portToID);
             for (int i = 1; i <= n; i++) {
-                link.sendMessage(Integer.toString(i), sendPort);
+                link.sendMessage(sendPort, address, i, "Payload lol");
             }
         } catch (SocketException e) {
             e.printStackTrace();
@@ -84,14 +82,10 @@ public class Main {
         int port = parser.hosts().get(id - 1).getPort();
 
         try {
-            link = new PerfectLink(port, id, portToID);
-            while (true) {
-                link.listen(1000);
-            }
+            link = new DummyLayer(port, id, portToID);
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        link.close();
     }
 
     private static void deletePreviousOutputs() {

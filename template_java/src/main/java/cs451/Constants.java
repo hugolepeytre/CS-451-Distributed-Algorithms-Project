@@ -21,4 +21,5 @@ public class Constants {
     public static final int PORTS_WIDTH = 1000;
     public static final int PORTS_BEGIN = 11000;
     public static final String ACK = "ack";
+    public static final long NANOSECS_IN_MS = 1_000_000;
 }

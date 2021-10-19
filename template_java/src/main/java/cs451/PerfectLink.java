@@ -8,30 +8,43 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static cs451.Constants.ACK;
-import static cs451.Constants.PORTS_BEGIN;
+import static cs451.Constants.*;
 
-class PerfectLink {
+// TODO : better close method
+// TODO : Move log to upper layer
+class PerfectLink extends LinkLayer {
     private final DatagramSocket socket;
     private InetAddress address;
     private final int[] portToID;
-    private final byte[] bufAck = ACK.getBytes();
+
+    private final static int MS_WAIT_ACK = 1000;
+    private long stamp = System.nanoTime();
+
     private ArrayList<String> log;
     private final String output_path;
-    private final ArrayList<HashSet<String>> delivered;
+
+    private final LinkLayer upperLayer;
+    private final ArrayList<TreeSet<Integer>> delivered;
+    private final ConcurrentLinkedQueue<PacketInfo> toBeAcked;
+    private final ConcurrentLinkedQueue<PacketInfo> sendBuffer;
 
     private final byte[] buf;
 
-    public PerfectLink(int receivePort, int id, int[] portToID) throws SocketException {
+    public PerfectLink(int receivePort, int id, int[] portToID, LinkLayer up) throws SocketException {
         this.portToID = portToID;
+        this.upperLayer = up;
         socket = new DatagramSocket(receivePort);
         buf = new byte[256];
         delivered = new ArrayList<>();
+        sendBuffer = new ConcurrentLinkedQueue<>();
+        toBeAcked = new ConcurrentLinkedQueue<>();
         for (int i : portToID) {
             if (i != 0) {
-                delivered.add(new HashSet<>());
+                delivered.add(new TreeSet<>());
             }
         }
         try {
@@ -41,63 +54,94 @@ class PerfectLink {
         }
         log = new ArrayList<>();
         output_path = "../config_files/outputs/" + id + ".txt";
+        new Thread(this::listenLoop).start();
+        new Thread(this::sendLoop).start();
     }
 
-    public void sendMessage(String toSend, int sendPort) {
-        boolean ack = false;
-        log(toSend);
-        byte[] bufSend = toSend.getBytes();
-        while (!ack) {
-            DatagramPacket packet = new DatagramPacket(bufSend, bufSend.length, address, sendPort);
-            try {
-                socket.send(packet);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            packet = new DatagramPacket(buf, buf.length);
-            try {
-                socket.setSoTimeout(100);
-                socket.receive(packet);
-                String received = new String(packet.getData(), 0, packet.getLength());
-                ack = received.equals(ACK);
-            } catch (SocketTimeoutException e) {
-
-            } catch (IOException e) {
-                e.printStackTrace();
+    private void sendLoop() {
+        while (true) {
+            sendNextInQueue();
+            long currentTime = System.nanoTime();
+            long elapsedNanoSecs = currentTime - stamp;
+            if (elapsedNanoSecs > (NANOSECS_IN_MS * MS_WAIT_ACK)) {
+                stamp = currentTime;
+                emptyACKQueue();
             }
         }
     }
 
-    public void listen(int timeout) {
-        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+    private void sendNextInQueue() {
+        PacketInfo next = sendBuffer.poll();
+        if (next == null) return;
+        log(next.getPacketNumber());
         try {
-            socket.setSoTimeout(timeout);
-            socket.receive(packet);
-            String received = new String(packet.getData(), 0, packet.getLength());
-            int senderPort = packet.getPort();
-            int sender = portToID[senderPort - PORTS_BEGIN];
-            log(sender, received);
-
-            InetAddress address = packet.getAddress();
-            packet = new DatagramPacket(bufAck, bufAck.length, address, senderPort);
-            socket.send(packet);
-        } catch (SocketTimeoutException e) {
-            // Do nothing, we will loop
+            socket.send(next.getSendPacket());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        toBeAcked.add(next);
     }
 
-    private void log(int sender, String message) {
-        HashSet<String> deliveredFromSender = delivered.get(sender);
-        if (!deliveredFromSender.contains(message)) {
-            deliveredFromSender.add(message);
-            log.add("d " + sender + " " + message + "\n");
+    private void emptyACKQueue() {
+        for (PacketInfo p : toBeAcked) {
+            try {
+                socket.send(p.getSendPacket());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void log(String message) {
-        log.add("b " + message + "\n");
+    @Override
+    public void sendMessage(int port, InetAddress address, int packetNumber, String message) {
+        sendBuffer.add(new PacketInfo(port, address, packetNumber, message));
+    }
+
+    private void listenLoop() {
+        while (true) {
+            // Listening
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+            try {
+                socket.receive(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Treating received data
+            byte[] payload = packet.getData();
+            PacketInfo receivedP = new PacketInfo(packet.getPort(), packet.getAddress(), payload);
+            int senderPort = receivedP.getPort();
+            int packetNumber = receivedP.getPacketNumber();
+            int sender = portToID[senderPort - PORTS_BEGIN];
+            String message = receivedP.getMessage();
+
+            if (message.equals(ACK)) {
+                toBeAcked.remove(receivedP);
+            }
+            else {
+                // Sending ACK
+                sendBuffer.add(new PacketInfo(senderPort, address, packetNumber, ACK));
+
+                // Logging and delivering
+                if (!log(sender, packetNumber)) {
+                    upperLayer.deliver(receivedP, sender);
+                }
+            }
+        }
+    }
+
+    private boolean log(int sender, int packetNumber) {
+        TreeSet<Integer> deliveredFromSender = delivered.get(sender);
+        if (!deliveredFromSender.contains(packetNumber)) {
+            deliveredFromSender.add(packetNumber);
+            log.add("d " + sender + " " + packetNumber + "\n");
+            return false;
+        }
+        return true;
+    }
+
+    private void log(int packetNumber) {
+        log.add("b " + packetNumber + "\n");
     }
 
     public void close() {
@@ -115,5 +159,10 @@ class PerfectLink {
             e.printStackTrace();
         }
         log = new ArrayList<>();
+    }
+
+    @Override
+    public void deliver(PacketInfo p, int sender) {
+        // Does nothing, this is the lowest layer
     }
 }
