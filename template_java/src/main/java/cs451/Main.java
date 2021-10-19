@@ -1,23 +1,18 @@
 package cs451;
 
-import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
 import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
-// ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/ ../config_files/configs/perfect_link.txt
-
+// ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
+// TODO : OUTPUT is a path to a file
 public class Main {
     private static LinkLayer link;
 
@@ -92,7 +87,6 @@ public class Main {
     }
 
     private static void runReceiver(long pid, Parser parser, int id, int[] portToID, String outputPath) {
-        deletePreviousOutputs(outputPath);
 //        writePid(pid);
         int port = parser.hosts().get(id - 1).getPort();
         try {
@@ -102,19 +96,13 @@ public class Main {
         }
     }
 
-    private static void deletePreviousOutputs(String outputPath) {
-        File dir = new File(outputPath);
-        for(File file: dir.listFiles())
-            if (!file.isDirectory())
-                file.delete();
-//        File pidFile = new File("../config_files/pid.txt");
-//        pidFile.delete();
-    }
-
     private static void writePid(long pid) {
-        Path path = Paths.get("../config_files/pid.txt");
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,StandardOpenOption.CREATE)) {
-            writer.write(Long.toString(pid));
+        try {
+            File pidFile = new File("../config_files/pid.txt");
+            pidFile.createNewFile();
+            FileWriter f2 = new FileWriter(pidFile, false);
+            f2.write(Long.toString(pid));
+            f2.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

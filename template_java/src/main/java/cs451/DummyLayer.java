@@ -1,14 +1,10 @@
 package cs451;
 
-import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public class DummyLayer extends LinkLayer{
@@ -23,7 +19,7 @@ public class DummyLayer extends LinkLayer{
 //        timeBegin = System.nanoTime();
         l = new PerfectLink(receivePort, portToID, this);
         log = new ArrayList<>();
-        output_path = outFile + id + ".txt";
+        output_path = outFile;
     }
 
     @Override
@@ -53,11 +49,12 @@ public class DummyLayer extends LinkLayer{
     }
 
     public void writeOutput() {
-        Path path = Paths.get(output_path);
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.APPEND,StandardOpenOption.CREATE)) {
-            for (String line : log) {
-                writer.write(line);
-            }
+        try {
+            File out = new File(output_path);
+            out.createNewFile();
+            FileWriter f2 = new FileWriter(out, false);
+            f2.write(String.join("\n", log));
+            f2.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
