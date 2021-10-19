@@ -17,7 +17,6 @@ import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/ ../config_files/configs/perfect_link.txt
-// TODO : Test using stress
 
 public class Main {
     private static LinkLayer link;
@@ -40,10 +39,11 @@ public class Main {
         long pid = ProcessHandle.current().pid();
         System.out.print("Creating process. PID : " + pid + "\n");
         int id = parser.myId();
+        String outputPath = parser.output();
 
         String[] instructions = parser.instructions().split(" ");
-        int receiverId = Integer.parseInt(instructions[0]);
-        int n = Integer.parseInt(instructions[1]);
+        int n = Integer.parseInt(instructions[0]);
+        int receiverId = Integer.parseInt(instructions[1]);
         boolean isReceiver = receiverId == id;
         InetAddress receiverAddress = null;
 
@@ -61,20 +61,20 @@ public class Main {
         initSignalHandlers();
         System.out.print("Broadcasting and delivering messages...\n");
         if (isReceiver) {
-            runReceiver(pid, parser, id, portToID);
+            runReceiver(pid, parser, id, portToID, outputPath);
         }
         else {
-            runSender(parser, id, n, receiverId, portToID, receiverAddress);
+            runSender(parser, id, n, receiverId, portToID, receiverAddress, outputPath);
         }
 
 
     }
 
-    private static void runSender(Parser parser, int id, int n, int receiverId, int[] portToID, InetAddress ad) {
+    private static void runSender(Parser parser, int id, int n, int receiverId, int[] portToID, InetAddress ad, String outputPath) {
         int sendPort = parser.hosts().get(receiverId - 1).getPort();
         int port = parser.hosts().get(id - 1).getPort();
         try {
-            link = new DummyLayer(port, id, portToID);
+            link = new DummyLayer(port, id, portToID, outputPath);
             for (int i = 1; i <= n; i++) {
                 link.sendMessage(sendPort, ad, i, "Payload lol");
             }
@@ -91,24 +91,24 @@ public class Main {
         link.close();
     }
 
-    private static void runReceiver(long pid, Parser parser, int id, int[] portToID) {
-        deletePreviousOutputs();
-        writePid(pid);
+    private static void runReceiver(long pid, Parser parser, int id, int[] portToID, String outputPath) {
+        deletePreviousOutputs(outputPath);
+//        writePid(pid);
         int port = parser.hosts().get(id - 1).getPort();
         try {
-            link = new DummyLayer(port, id, portToID);
+            link = new DummyLayer(port, id, portToID, outputPath);
         } catch (SocketException e) {
             e.printStackTrace();
         }
     }
 
-    private static void deletePreviousOutputs() {
-        File dir = new File("../config_files/outputs");
+    private static void deletePreviousOutputs(String outputPath) {
+        File dir = new File(outputPath);
         for(File file: dir.listFiles())
             if (!file.isDirectory())
                 file.delete();
-        File pidFile = new File("../config_files/pid.txt");
-        pidFile.delete();
+//        File pidFile = new File("../config_files/pid.txt");
+//        pidFile.delete();
     }
 
     private static void writePid(long pid) {
