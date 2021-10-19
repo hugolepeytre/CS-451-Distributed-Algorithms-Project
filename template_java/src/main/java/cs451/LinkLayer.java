@@ -8,4 +8,6 @@ public abstract class LinkLayer {
     public abstract void sendMessage(int port, InetAddress address, int packetNumber, String message);
 
     public abstract void close();
+
+    public abstract boolean isDone();
 }

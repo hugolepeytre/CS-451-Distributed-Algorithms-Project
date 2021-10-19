@@ -5,6 +5,9 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.Constants.*;
 
@@ -20,6 +23,10 @@ class PerfectLink extends LinkLayer {
     private final ArrayList<TreeSet<Integer>> delivered;
     private final ConcurrentLinkedQueue<PacketInfo> toBeAcked;
     private final ConcurrentLinkedQueue<PacketInfo> sendBuffer;
+
+    private final Thread listenThread;
+    private final Thread sendThread;
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final byte[] buf;
 
@@ -41,12 +48,15 @@ class PerfectLink extends LinkLayer {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        new Thread(this::listenLoop).start();
-        new Thread(this::sendLoop).start();
+        running.set(true);
+        listenThread = new Thread(this::listenLoop);
+        sendThread = new Thread(this::sendLoop);
+        listenThread.start();
+        sendThread.start();
     }
 
     private void sendLoop() {
-        while (true) {
+        while (running.get()) {
             sendNextInQueue();
             long currentTime = System.nanoTime();
             long elapsedNanoSecs = currentTime - stamp;
@@ -84,41 +94,61 @@ class PerfectLink extends LinkLayer {
     }
 
     private void listenLoop() {
-        while (true) {
+        while (running.get()) {
             // Listening
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
+            boolean received = false;
             try {
+                socket.setSoTimeout(10*1000);
                 socket.receive(packet);
+                received = true;
+            } catch (SocketTimeoutException e) {
+                // Do nothing, we loop
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             // Treating received data
-            byte[] payload = packet.getData();
-            PacketInfo receivedP = new PacketInfo(packet.getPort(), packet.getAddress(), payload);
-            int senderPort = receivedP.getPort();
-            int packetNumber = receivedP.getPacketNumber();
-            int sender = portToID[senderPort - PORTS_BEGIN];
-            String message = receivedP.getMessage();
+            if (received) {
+                byte[] payload = packet.getData();
+                int packetLength = packet.getLength();
+                PacketInfo receivedP = new PacketInfo(packet.getPort(), packet.getAddress(), payload, packetLength);
+                int senderPort = receivedP.getPort();
+                int packetNumber = receivedP.getPacketNumber();
+                int sender = portToID[senderPort - PORTS_BEGIN];
+                String message = receivedP.getMessage();
 
-            if (message.equals(ACK)) {
-                toBeAcked.remove(receivedP);
-            }
-            else {
-                // Sending ACK
-                sendBuffer.add(new PacketInfo(senderPort, address, packetNumber, ACK));
+                if (message.equals(ACK)) {
+                    toBeAcked.remove(receivedP);
+                } else {
+                    // Sending ACK
+                    sendBuffer.add(new PacketInfo(senderPort, address, packetNumber, ACK));
 
-                // Logging and delivering
-                TreeSet<Integer> deliveredFromSender = delivered.get(sender);
-                if (!deliveredFromSender.contains(packetNumber)) {
-                    deliveredFromSender.add(packetNumber);
-                    upperLayer.deliver(receivedP, sender);
+                    // Logging and delivering
+                    TreeSet<Integer> deliveredFromSender = delivered.get(sender - 1);
+                    if (!deliveredFromSender.contains(packetNumber)) {
+                        deliveredFromSender.add(packetNumber);
+                        upperLayer.deliver(receivedP, sender);
+                    }
                 }
             }
         }
     }
 
+    @Override
+    public boolean isDone() {
+        return toBeAcked.isEmpty() && sendBuffer.isEmpty();
+    }
+
+    @Override
     public void close() {
+        running.set(false);
+        try {
+            sendThread.join();
+            listenThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         socket.close();
     }
 

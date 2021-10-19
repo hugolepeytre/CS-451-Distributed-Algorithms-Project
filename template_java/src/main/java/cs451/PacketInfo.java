@@ -49,10 +49,10 @@ public class PacketInfo {
         this.payload = pl;
     }
 
-    public PacketInfo(int port, InetAddress address, byte[] payload) {
+    public PacketInfo(int port, InetAddress address, byte[] payload, int packetLength) {
         this.port = port;
         this.address = address;
-        message = new String(payload, INT_LENGTH_BYTES, payload.length - INT_LENGTH_BYTES);
+        message = new String(payload, INT_LENGTH_BYTES, packetLength - INT_LENGTH_BYTES);
         packetNumber = ByteBuffer.wrap(Arrays.copyOfRange(payload, 0, INT_LENGTH_BYTES))
                 .order(ByteOrder.LITTLE_ENDIAN).getInt();
         this.payload = payload;

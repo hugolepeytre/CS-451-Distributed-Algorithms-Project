@@ -1,5 +1,6 @@
 import subprocess
 
+subprocess.run('./build.sh')
 # Finding server
 with open('../config_files/configs/perfect_link.txt', 'r') as f:
     line = f.readlines()[0].split(' ')
@@ -25,3 +26,7 @@ for (perfect_link_id, p) in processes:
 # Killing server
 with open('../config_files/pid.txt', 'r') as f:
     subprocess.run(['kill', '-SIGINT', str(f.readlines()[0])])
+
+for (perfect_link_id, p) in processes:
+    if perfect_link_id == server_id:
+        p.wait()

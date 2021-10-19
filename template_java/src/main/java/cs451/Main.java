@@ -11,12 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.TimeUnit;
 
 import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
+// ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/ ../config_files/configs/perfect_link.txt
 // TODO : Test using stress
-// TODO : Benchmark ?
 
 public class Main {
     private static LinkLayer link;
@@ -32,12 +33,12 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        System.out.println("Parsing\n");
+        System.out.print("Parsing\n");
         Parser parser = new Parser(args);
         parser.parse();
 
-        System.out.println("Creating process\n");
         long pid = ProcessHandle.current().pid();
+        System.out.print("Creating process. PID : " + pid + "\n");
         int id = parser.myId();
 
         String[] instructions = parser.instructions().split(" ");
@@ -58,7 +59,7 @@ public class Main {
         }
 
         initSignalHandlers();
-        System.out.println("Broadcasting and delivering messages...\n");
+        System.out.print("Broadcasting and delivering messages...\n");
         if (isReceiver) {
             runReceiver(pid, parser, id, portToID);
         }
@@ -80,6 +81,13 @@ public class Main {
         } catch (SocketException e) {
             e.printStackTrace();
         }
+        while (!link.isDone()) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         link.close();
     }
 
@@ -87,7 +95,6 @@ public class Main {
         deletePreviousOutputs();
         writePid(pid);
         int port = parser.hosts().get(id - 1).getPort();
-
         try {
             link = new DummyLayer(port, id, portToID);
         } catch (SocketException e) {
