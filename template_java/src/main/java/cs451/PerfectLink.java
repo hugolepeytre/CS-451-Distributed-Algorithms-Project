@@ -2,20 +2,12 @@ package cs451;
 
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static cs451.Constants.*;
 
-// TODO : better close method
-// TODO : Move log to upper layer
 class PerfectLink extends LinkLayer {
     private final DatagramSocket socket;
     private InetAddress address;
@@ -24,9 +16,6 @@ class PerfectLink extends LinkLayer {
     private final static int MS_WAIT_ACK = 1000;
     private long stamp = System.nanoTime();
 
-    private ArrayList<String> log;
-    private final String output_path;
-
     private final LinkLayer upperLayer;
     private final ArrayList<TreeSet<Integer>> delivered;
     private final ConcurrentLinkedQueue<PacketInfo> toBeAcked;
@@ -34,7 +23,7 @@ class PerfectLink extends LinkLayer {
 
     private final byte[] buf;
 
-    public PerfectLink(int receivePort, int id, int[] portToID, LinkLayer up) throws SocketException {
+    public PerfectLink(int receivePort, int[] portToID, LinkLayer up) throws SocketException {
         this.portToID = portToID;
         this.upperLayer = up;
         socket = new DatagramSocket(receivePort);
@@ -52,8 +41,6 @@ class PerfectLink extends LinkLayer {
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        log = new ArrayList<>();
-        output_path = "../config_files/outputs/" + id + ".txt";
         new Thread(this::listenLoop).start();
         new Thread(this::sendLoop).start();
     }
@@ -73,7 +60,6 @@ class PerfectLink extends LinkLayer {
     private void sendNextInQueue() {
         PacketInfo next = sendBuffer.poll();
         if (next == null) return;
-        log(next.getPacketNumber());
         try {
             socket.send(next.getSendPacket());
         } catch (IOException e) {
@@ -123,42 +109,17 @@ class PerfectLink extends LinkLayer {
                 sendBuffer.add(new PacketInfo(senderPort, address, packetNumber, ACK));
 
                 // Logging and delivering
-                if (!log(sender, packetNumber)) {
+                TreeSet<Integer> deliveredFromSender = delivered.get(sender);
+                if (!deliveredFromSender.contains(packetNumber)) {
+                    deliveredFromSender.add(packetNumber);
                     upperLayer.deliver(receivedP, sender);
                 }
             }
         }
     }
 
-    private boolean log(int sender, int packetNumber) {
-        TreeSet<Integer> deliveredFromSender = delivered.get(sender);
-        if (!deliveredFromSender.contains(packetNumber)) {
-            deliveredFromSender.add(packetNumber);
-            log.add("d " + sender + " " + packetNumber + "\n");
-            return false;
-        }
-        return true;
-    }
-
-    private void log(int packetNumber) {
-        log.add("b " + packetNumber + "\n");
-    }
-
     public void close() {
-        writeOutput();
         socket.close();
-    }
-
-    public void writeOutput() {
-        Path path = Paths.get(output_path);
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.APPEND,StandardOpenOption.CREATE)) {
-            for (String line : log) {
-                writer.write(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        log = new ArrayList<>();
     }
 
     @Override

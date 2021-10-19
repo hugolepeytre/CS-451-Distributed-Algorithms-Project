@@ -3,7 +3,9 @@ package cs451;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,10 +15,8 @@ import java.nio.file.StandardOpenOption;
 import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
-// TODO : No close after runReceiver
 // TODO : Test using stress
 // TODO : Benchmark ?
-// TODO : Check Inet Address parsing
 
 public class Main {
     private static LinkLayer link;
@@ -24,7 +24,6 @@ public class Main {
     private static void handleSignal() {
         System.out.println("Immediately stopping network packet processing.");
         System.out.println("Writing output.");
-        link.writeOutput();
         link.close();
     }
 
@@ -40,13 +39,22 @@ public class Main {
         System.out.println("Creating process\n");
         long pid = ProcessHandle.current().pid();
         int id = parser.myId();
+
         String[] instructions = parser.instructions().split(" ");
-        int receiver = Integer.parseInt(instructions[0]);
+        int receiverId = Integer.parseInt(instructions[0]);
         int n = Integer.parseInt(instructions[1]);
-        boolean isReceiver = receiver == id;
+        boolean isReceiver = receiverId == id;
+        InetAddress receiverAddress = null;
+
         int[] portToID = new int[PORTS_WIDTH];
         for (Host host: parser.hosts()) {
+            int hostId = host.getId();
             portToID[host.getPort() - PORTS_BEGIN] = host.getId();
+            if (hostId == receiverId) try {
+                receiverAddress = InetAddress.getByName(host.getIp());
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
 
         initSignalHandlers();
@@ -55,20 +63,19 @@ public class Main {
             runReceiver(pid, parser, id, portToID);
         }
         else {
-            runSender(parser, id, n, receiver, portToID);
+            runSender(parser, id, n, receiverId, portToID, receiverAddress);
         }
 
 
     }
 
-    private static void runSender(Parser parser, int id, int n, int receiverId, int[] portToID) {
-        // TODO : Get address to send to
+    private static void runSender(Parser parser, int id, int n, int receiverId, int[] portToID, InetAddress ad) {
         int sendPort = parser.hosts().get(receiverId - 1).getPort();
         int port = parser.hosts().get(id - 1).getPort();
         try {
             link = new DummyLayer(port, id, portToID);
             for (int i = 1; i <= n; i++) {
-                link.sendMessage(sendPort, address, i, "Payload lol");
+                link.sendMessage(sendPort, ad, i, "Payload lol");
             }
         } catch (SocketException e) {
             e.printStackTrace();
