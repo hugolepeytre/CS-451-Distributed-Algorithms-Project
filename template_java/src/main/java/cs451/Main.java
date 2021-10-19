@@ -12,7 +12,7 @@ import static cs451.Constants.PORTS_WIDTH;
 import static cs451.Constants.PORTS_BEGIN;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
-// TODO : OUTPUT is a path to a file
+
 public class Main {
     private static LinkLayer link;
 
