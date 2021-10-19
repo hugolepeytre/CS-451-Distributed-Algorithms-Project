@@ -33,6 +33,8 @@ public class DummyLayer extends LinkLayer{
     public void sendMessage(int port, InetAddress address, int packetNumber, String message) {
         l.sendMessage(port, address, packetNumber, message);
         log.add("b " + packetNumber + "\n");
+        System.out.println("added to log");
+        System.out.println(log.get(0));
 //        long elapsed = (System.nanoTime() - timeBegin)/1_000_000;
 //        log.add("b " + packetNumber + " " + message + " " + elapsed + "\n");
     }
@@ -52,8 +54,8 @@ public class DummyLayer extends LinkLayer{
         try {
             File out = new File(output_path);
             out.createNewFile();
-            FileWriter f2 = new FileWriter(out, false);
-            f2.write(String.join("\n", log));
+            FileWriter f2 = new FileWriter(out, true);
+            f2.write(String.join("", log));
             f2.close();
         } catch (IOException e) {
             e.printStackTrace();
