@@ -12,7 +12,7 @@ public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 1, only logs
     private final PerfectLink l;
 
-    private ArrayList<String> log;
+    private final ArrayList<String> log;
     private final String output_path;
 
     public DummyLayer(int receivePort, int nHosts, String outFile) throws SocketException {
@@ -41,12 +41,11 @@ public class DummyLayer implements LinkLayer {
     public void writeOutput() {
         try {
             File out = new File(output_path);
-            FileWriter f2 = new FileWriter(out, true);
+            FileWriter f2 = new FileWriter(out, false);
             f2.write(String.join("", log));
             f2.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        log = new ArrayList<>();
     }
 }

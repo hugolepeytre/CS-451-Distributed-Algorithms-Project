@@ -3,6 +3,7 @@ package cs451;
 import cs451.Layers.DummyLayer;
 import cs451.Layers.LinkLayer;
 import cs451.Parsing.Parser;
+import cs451.Util.PacketInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,12 +12,8 @@ import java.net.SocketException;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
-// TODO : Learn about concurreny (volatile, atomic boolean, concurrent vs normal collections)
 // TODO : Créer main configs et profiler
-// TODO : todos in PerfectLink for code logic
-
-// TODO TEST : Threads should only terminate when asked. TESTER qu'en enlevant le sleep until done je kill pas mes autres threads
-// TODO TEST : Create output file during init, then only write with SignalHandler
+// TODO : Learn about concurreny (volatile, atomic boolean, concurrent vs normal collections)
 
 public class Main {
     private static LinkLayer link;
@@ -28,6 +25,7 @@ public class Main {
     private static int port;
     private static InetAddress address;
 
+    private static int receiverId;
     private static int receiverPort;
     private static InetAddress receiverAddress;
 
@@ -56,7 +54,9 @@ public class Main {
         try {
             link = new DummyLayer(port, nHosts, outputPath);
             for (int i = 1; i <= nMessages; i++) {
-                link.sendMessage(receiverPort, receiverAddress, i, "p");
+                String payload = "test";
+                PacketInfo toSend = new PacketInfo(id, port, address, receiverId, receiverPort, receiverAddress, i, payload);
+                link.sendMessage(toSend);
             }
         } catch (SocketException e) {
             e.printStackTrace();
@@ -78,7 +78,7 @@ public class Main {
 
         nMessages = Integer.parseInt(instructions[0]);
         nHosts = parser.getNHosts();
-        int receiverId = Integer.parseInt(instructions[1]);
+        receiverId = Integer.parseInt(instructions[1]);
         receiverPort = parser.getPort(receiverId);
         receiverAddress = parser.getAddress(receiverId);
 

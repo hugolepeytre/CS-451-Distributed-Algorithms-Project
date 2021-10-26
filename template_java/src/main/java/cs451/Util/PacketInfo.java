@@ -1,11 +1,10 @@
 package cs451.Util;
 
-import java.io.Serializable;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Arrays;
 
-// TODO : serializing Packet object (https://stackoverflow.com/questions/2836646/java-serializable-object-to-byte-array)
-// TODO : Check PacketInfo size as bytes (> 256 ?)
 public class PacketInfo implements Serializable {
     private final int senderId;
     private final int senderPort;
@@ -24,6 +23,7 @@ public class PacketInfo implements Serializable {
 
     private final boolean isAck;
     private final String payload;
+    // TODO : Only construct payload once, then reuse
 
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int originalSenderId, int originalSenderPort, InetAddress originalSenderAddress,
@@ -63,11 +63,28 @@ public class PacketInfo implements Serializable {
     }
 
     public static PacketInfo fromPacket(DatagramPacket p) {
-        
+        int l = p.getLength();
+        byte[] data = Arrays.copyOfRange(p.getData(), 0, l);
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
+             ObjectInputStream in = new ObjectInputStream(bis)) {
+            return (PacketInfo) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public DatagramPacket toPacket() {
-
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(this);
+            out.flush();
+            byte[] buf = bos.toByteArray();
+            return new DatagramPacket(buf, buf.length, targetAddress, targetPort);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public PacketInfo getACK() {

@@ -1,11 +1,14 @@
-Parsing
-Creating process. PID : 4840
+Parsing. PID : 6034
 Broadcasting and delivering messages...
-added to log
-b 1
-
-added to log
-b 1
-
+sent 1
+sent 2
+sent 3
+sent 4
+sent 5
+sent 6
+sent 7
+sent 8
+sent 9
+sent 10
 Immediately stopping network packet processing.
 Writing output.

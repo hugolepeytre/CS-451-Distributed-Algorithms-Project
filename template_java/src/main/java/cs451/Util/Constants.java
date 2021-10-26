@@ -22,6 +22,7 @@ public class Constants {
     public static final int PORTS_BEGIN = 11000;
     public static final String ACK = "ack";
     public static final long NANOSECS_IN_MS = 1_000_000;
-    public static final int BUF_SIZE = 256;
+    public static final int BUF_SIZE = 1024;
     public static final int BLOCK_TIME = 100;
+    public static final int BYTES_IN_INT = 4;
 }
