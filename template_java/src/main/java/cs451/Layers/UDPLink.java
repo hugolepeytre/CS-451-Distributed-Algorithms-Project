@@ -89,4 +89,9 @@ public class UDPLink implements LinkLayer {
     public void deliver(PacketInfo p) {
         // Does nothing, this is the lowest layer
     }
+
+    @Override
+    public int nextSeqNum() {
+        return upperLayer.nextSeqNum();
+    }
 }

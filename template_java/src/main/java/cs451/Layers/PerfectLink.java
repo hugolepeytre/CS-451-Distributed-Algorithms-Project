@@ -110,4 +110,9 @@ class PerfectLink implements LinkLayer {
         }
         return l.isDone() && toTreat.isEmpty();
     }
+
+    @Override
+    public int nextSeqNum() {
+        return upperLayer.nextSeqNum();
+    }
 }

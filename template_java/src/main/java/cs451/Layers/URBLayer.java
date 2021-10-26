@@ -6,9 +6,11 @@ import cs451.Util.PacketInfo;
 
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
@@ -18,11 +20,12 @@ public class URBLayer implements LinkLayer {
     private final LinkedBlockingQueue<PacketInfo> treatBuffer;
     private final ArrayList<MessageList> acks;
 
-    private final ArrayList<Host> hosts;
+    private final List<Host> hosts;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicInteger nextSeq = new AtomicInteger(0);
 
-    public URBLayer(int port, ArrayList<Host> hosts, LinkLayer upperLayer) throws SocketException {
+    public URBLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
         this.hosts = hosts;
         this.upperLayer = upperLayer;
         l = new PerfectLink(port, hosts.size(), this);
@@ -52,7 +55,7 @@ public class URBLayer implements LinkLayer {
     private void treat(PacketInfo p) {
         if (!p.isAck()) {
             if (acks.get(p.getOriginalSenderId() - 1).forwarded(p)) {
-                int newSeqNum = generateNewSeqNum();
+                int newSeqNum = nextSeqNum();
                 PacketInfo newP = p.becomeSender(newSeqNum);
                 sendMessage(newP);
             }
@@ -61,11 +64,6 @@ public class URBLayer implements LinkLayer {
                 upperLayer.deliver(toDeliver);
             }
         }
-    }
-
-    private int generateNewSeqNum() {
-        // TODO
-        return 0;
     }
 
     @Override
@@ -91,5 +89,10 @@ public class URBLayer implements LinkLayer {
     @Override
     public boolean isDone() {
         return false;
+    }
+
+    @Override
+    public int nextSeqNum() {
+        return nextSeq.addAndGet(1);
     }
 }

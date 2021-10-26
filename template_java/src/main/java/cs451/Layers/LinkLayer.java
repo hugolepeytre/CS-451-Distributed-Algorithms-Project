@@ -12,4 +12,6 @@ public interface LinkLayer {
     void close();
 
     boolean isDone();
+
+    int nextSeqNum();
 }

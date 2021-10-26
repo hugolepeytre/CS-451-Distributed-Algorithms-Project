@@ -74,6 +74,9 @@ public class Parser {
         if (step.equals("perfect")) {
             return configParser.getInstructions().trim().split(" ");
         }
+        else if (step.equals("fifo")) {
+            return configParser.getInstructions().trim().split(" ");
+        }
         else throw new RuntimeException("Wrong config parsing instruction");
     }
 
@@ -84,6 +87,4 @@ public class Parser {
     public int getPort(int id) {
         return hostsParser.getPort(id);
     }
-
-    public int getNHosts() { return hostsParser.getNHosts(); }
 }

@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Arrays;
-import java.util.Objects;
 
 public class PacketInfo implements Serializable {
     private final int senderId;
@@ -48,7 +47,7 @@ public class PacketInfo implements Serializable {
 
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int targetId, int targetPort, InetAddress targetAddress,
-                      int sequenceNumber, String payload) {
+                      int sequenceNumber, int originalSequenceNumber, String payload) {
         this.senderId = senderId;
         this.senderPort = senderPort;
         this.senderAddress = senderAddress;
@@ -59,7 +58,7 @@ public class PacketInfo implements Serializable {
         this.targetPort = targetPort;
         this.targetAddress = targetAddress;
         this.sequenceNumber = sequenceNumber;
-        this.originalSequenceNumber = sequenceNumber;
+        this.originalSequenceNumber = originalSequenceNumber;
         this.isAck = false;
         this.payload = payload;
     }
@@ -99,7 +98,7 @@ public class PacketInfo implements Serializable {
     public PacketInfo newDestination(int id, int port, InetAddress address) {
         return new PacketInfo(id, port, address,
                 senderId, senderPort, senderAddress,
-                sequenceNumber, payload);
+                sequenceNumber, originalSequenceNumber, payload);
     }
 
     public PacketInfo becomeSender(int newSeqNumber) {
