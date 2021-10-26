@@ -12,7 +12,10 @@ import java.net.SocketException;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
-// TODO : Learn about concurreny (volatile, atomic boolean, concurrent vs normal collections)
+// TODO : Change DummyLayer to work with new specs
+// TODO : Change parsing to work with new specs
+// TODO : Use only originalSeqNumber from URB upwards, find a way to assign new seq numbers
+// TODO : Test all my URB code, I was tired
 
 public class Main {
     private static LinkLayer link;

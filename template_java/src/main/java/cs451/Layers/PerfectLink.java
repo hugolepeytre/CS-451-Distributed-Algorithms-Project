@@ -71,7 +71,6 @@ class PerfectLink implements LinkLayer {
     private void treat(PacketInfo p) {
         if (p.isAck()) {
             toBeAcked.get(p.getSenderId() - 1).remove(p);
-            upperLayer.deliver(p);
         } else {
             // Sending ACK
             l.sendMessage(p.getACK());

@@ -79,7 +79,7 @@ public class HostsParser {
     }
 
     public InetAddress getAddress(int id) {
-        return getAddressFromString(hosts.get(id - 1).getIp());
+        return hosts.get(id - 1).getAddress();
     }
 
     public int getPort(int id) {
@@ -96,16 +96,6 @@ public class HostsParser {
             return a.getId() - b.getId();
         }
 
-    }
-
-    private static InetAddress getAddressFromString(String ip) {
-        try {
-            return InetAddress.getByName(ip);
-        }
-        catch (UnknownHostException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
 }

@@ -10,6 +10,7 @@ public class Host {
     private int id;
     private String ip;
     private int port = -1;
+    private InetAddress address;
 
     public boolean populate(String idString, String ipString, String portString) {
         try {
@@ -21,6 +22,8 @@ public class Host {
             } else {
                 ip = InetAddress.getByName(ipTest.split(IP_START_REGEX)[0]).getHostAddress();
             }
+
+            address = getAddressFromString(ip);
 
             port = Integer.parseInt(portString);
             if (port <= 0) {
@@ -51,6 +54,18 @@ public class Host {
 
     public int getPort() {
         return port;
+    }
+
+    public InetAddress getAddress() { return address; }
+
+    private static InetAddress getAddressFromString(String ip) {
+        try {
+            return InetAddress.getByName(ip);
+        }
+        catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }
