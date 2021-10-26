@@ -12,7 +12,6 @@ import java.net.SocketException;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
-// TODO : Créer main configs et profiler
 // TODO : Learn about concurreny (volatile, atomic boolean, concurrent vs normal collections)
 
 public class Main {
@@ -46,8 +45,6 @@ public class Main {
         else {
             runSender();
         }
-
-
     }
 
     private static void runSender() {

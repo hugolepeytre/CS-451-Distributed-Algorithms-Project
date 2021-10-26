@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static cs451.Util.Constants.*;
 
 public class UDPLink implements LinkLayer {
-
     private final LinkLayer upperLayer;
     private final DatagramSocket socket;
     private final byte[] receiveBuffer;
@@ -79,6 +78,11 @@ public class UDPLink implements LinkLayer {
             e.printStackTrace();
         }
         socket.close();
+    }
+
+    @Override
+    public boolean isDone() {
+        return sendBuffer.isEmpty();
     }
 
     @Override

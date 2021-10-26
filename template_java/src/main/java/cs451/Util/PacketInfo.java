@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class PacketInfo implements Serializable {
     private final int senderId;
@@ -23,8 +24,9 @@ public class PacketInfo implements Serializable {
 
     private final boolean isAck;
     private final String payload;
-    // TODO : Only construct payload once, then reuse
 
+    // TODO : Only construct byte array once, then reuse
+    // TODO : Try constructing byte array by hand and check time gained
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int originalSenderId, int originalSenderPort, InetAddress originalSenderAddress,
                       int targetId, int targetPort, InetAddress targetAddress,
@@ -88,9 +90,9 @@ public class PacketInfo implements Serializable {
     }
 
     public PacketInfo getACK() {
-        return new PacketInfo(senderId, senderPort, senderAddress,
+        return new PacketInfo(targetId, targetPort, targetAddress,
                               originalSenderId, originalSenderPort, originalSenderAddress,
-                              targetId, targetPort, targetAddress,
+                              senderId, senderPort, senderAddress,
                               sequenceNumber, originalSequenceNumber, true, payload);
     }
 
@@ -148,6 +150,11 @@ public class PacketInfo implements Serializable {
 }
 
 //    @Override
+//    public int hashCode() {
+//        return Objects.hash(packetNumber, port, address);
+//    }
+
+//    @Override
 //    public boolean equals(Object obj) {
 //        if (obj == null) {
 //            return false;
@@ -158,22 +165,21 @@ public class PacketInfo implements Serializable {
 //        }
 //
 //        final PacketInfo other = (PacketInfo) obj;
-//        if (!Objects.equals(this.address, other.address)) {
+//        if (!Objects.equals(this.originalSenderAddress, other.originalSenderAddress)) {
 //            return false;
 //        }
 //
-//        if (this.packetNumber != other.packetNumber) {
+//        if (this.originalSenderId != other.originalSenderId) {
 //            return false;
 //        }
 //
-//        if (this.port != other.port) {
+//        if (this.originalSenderPort != other.originalSenderPort) {
 //            return false;
 //        }
 //
-//        return true;
-//    }
+//        if (this.sequenceNumber != other.sequenceNumber || this.originalSequenceNumber != other.originalSequenceNumber) {
+//            return false;
+//        }
 //
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(packetNumber, port, address);
+//        return Objects.equals(this.payload, other.payload) ;
 //    }

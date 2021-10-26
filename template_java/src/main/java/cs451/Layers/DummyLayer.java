@@ -23,7 +23,7 @@ public class DummyLayer implements LinkLayer {
 
     @Override
     public void deliver(PacketInfo p) {
-        log.add("d " + p.getSenderId() + " " + p.getSequenceNumber() + "\n");
+        if (!p.isAck()) log.add("d " + p.getSenderId() + " " + p.getSequenceNumber() + "\n");
     }
 
     @Override
@@ -36,6 +36,11 @@ public class DummyLayer implements LinkLayer {
     public void close() {
         l.close();
         writeOutput();
+    }
+
+    @Override
+    public boolean isDone() {
+        return l.isDone();
     }
 
     public void writeOutput() {

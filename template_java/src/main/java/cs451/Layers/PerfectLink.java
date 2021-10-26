@@ -4,25 +4,22 @@ import cs451.Util.PacketInfo;
 
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.Util.Constants.*;
 
-// TODO : Check speed logic for searching for already seen and toBeAcked packets
-// TODO : Maybe for toBeAcked should be stored as sequence number and who we sent it to,
-//  and whole packets to be resent should be stored somewhere else
 // TODO : Improve logic for re-sending non-acked packets with host-specific timer
 class PerfectLink implements LinkLayer {
-
     private final UDPLink l;
     private final LinkLayer upperLayer;
     private final LinkedBlockingQueue<PacketInfo> toTreat;
-    private final ConcurrentLinkedQueue<PacketInfo> toBeAcked;
-    private final ArrayList<TreeSet<Integer>> delivered;
+    private final ArrayList<TreeSet<Integer>> delivered; // Not concurrent
+    private final ArrayList<ConcurrentSkipListSet<PacketInfo>> toBeAcked;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -31,10 +28,11 @@ class PerfectLink implements LinkLayer {
         this.l = new UDPLink(port, this);
 
         toTreat = new LinkedBlockingQueue<>();
-        toBeAcked = new ConcurrentLinkedQueue<>();
+        toBeAcked = new ArrayList<>();
         delivered = new ArrayList<>();
         for (int i = 0; i < nHosts; i++) {
             delivered.add(new TreeSet<>());
+            toBeAcked.add(new ConcurrentSkipListSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber)));
         }
 
         running.set(true);
@@ -49,8 +47,10 @@ class PerfectLink implements LinkLayer {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            for (PacketInfo p : toBeAcked) {
-                l.sendMessage(p);
+            for (ConcurrentSkipListSet<PacketInfo> list : toBeAcked) {
+                for (PacketInfo p : list) {
+                    l.sendMessage(p);
+                }
             }
         }
     }
@@ -69,9 +69,9 @@ class PerfectLink implements LinkLayer {
     }
 
     private void treat(PacketInfo p) {
-        String message = p.getPayload();
-        if (message.equals(ACK)) {
-            toBeAcked.remove(p);
+        if (p.isAck()) {
+            toBeAcked.get(p.getSenderId() - 1).remove(p);
+            upperLayer.deliver(p);
         } else {
             // Sending ACK
             l.sendMessage(p.getACK());
@@ -93,12 +93,22 @@ class PerfectLink implements LinkLayer {
 
     @Override
     public void sendMessage(PacketInfo p) {
-        toBeAcked.add(p);
+        toBeAcked.get(p.getTargetId() - 1).add(p);
         l.sendMessage(p);
     }
 
     @Override
     public void close() {
         running.set(false);
+    }
+
+    @Override
+    public boolean isDone() {
+        for (ConcurrentSkipListSet<PacketInfo> list : toBeAcked) {
+            if (!list.isEmpty()) {
+                return false;
+            }
+        }
+        return l.isDone() && toTreat.isEmpty();
     }
 }
