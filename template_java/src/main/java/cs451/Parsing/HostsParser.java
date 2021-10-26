@@ -1,27 +1,28 @@
-package cs451;
+package cs451.Parsing;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static cs451.Util.Constants.PORTS_BEGIN;
 
 public class HostsParser {
 
     private static final String HOSTS_KEY = "--hosts";
     private static final String SPACES_REGEX = "\\s+";
 
-    private String filename;
-    private List<Host> hosts = new ArrayList<>();
+    private final List<Host> hosts = new ArrayList<>();
 
     public boolean populate(String key, String filename) {
         if (!key.equals(HOSTS_KEY)) {
             return false;
         }
 
-        this.filename = filename;
         try(BufferedReader br = new BufferedReader(new FileReader(filename))) {
             int lineNum = 1;
             for(String line; (line = br.readLine()) != null; lineNum++) {
@@ -53,7 +54,7 @@ public class HostsParser {
         }
 
         // sort by id
-        Collections.sort(hosts, new HostsComparator());
+        hosts.sort(new HostsComparator());
         return true;
     }
 
@@ -77,12 +78,34 @@ public class HostsParser {
         return hosts;
     }
 
-    class HostsComparator implements Comparator<Host> {
+    public InetAddress getAddress(int id) {
+        return getAddressFromString(hosts.get(id - 1).getIp());
+    }
+
+    public int getPort(int id) {
+        return hosts.get(id - 1).getPort();
+    }
+
+    public int getNHosts() {
+        return hosts.size();
+    }
+
+    static class HostsComparator implements Comparator<Host> {
 
         public int compare(Host a, Host b) {
             return a.getId() - b.getId();
         }
 
+    }
+
+    private static InetAddress getAddressFromString(String ip) {
+        try {
+            return InetAddress.getByName(ip);
+        }
+        catch (UnknownHostException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

@@ -1,11 +1,13 @@
-package cs451;
+package cs451.Parsing;
 
+import cs451.Util.Constants;
+
+import java.net.InetAddress;
 import java.util.List;
 
 public class Parser {
 
-    private String[] args;
-    private long pid;
+    private final String[] args;
     private IdParser idParser;
     private HostsParser hostsParser;
     private OutputParser outputParser;
@@ -16,7 +18,7 @@ public class Parser {
     }
 
     public void parse() {
-        pid = ProcessHandle.current().pid();
+        long pid = ProcessHandle.current().pid();
 
         idParser = new IdParser();
         hostsParser = new HostsParser();
@@ -68,6 +70,20 @@ public class Parser {
 
     public String config() { return configParser.getPath(); }
 
-    public String instructions() { return configParser.getInstructions(); }
+    public String[] instructions(String step) {
+        if (step.equals("perfect")) {
+            return configParser.getInstructions().trim().split(" ");
+        }
+        else throw new RuntimeException("Wrong config parsing instruction");
+    }
 
+    public InetAddress getAddress(int id) {
+        return hostsParser.getAddress(id);
+    }
+
+    public int getPort(int id) {
+        return hostsParser.getPort(id);
+    }
+
+    public int getNHosts() { return hostsParser.getNHosts(); }
 }

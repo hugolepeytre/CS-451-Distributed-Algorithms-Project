@@ -1,4 +1,4 @@
-package cs451;
+package cs451.Util;
 
 public class Constants {
     public static final int ARG_LIMIT_CONFIG = 7;
@@ -22,4 +22,6 @@ public class Constants {
     public static final int PORTS_BEGIN = 11000;
     public static final String ACK = "ack";
     public static final long NANOSECS_IN_MS = 1_000_000;
+    public static final int BUF_SIZE = 256;
+    public static final int BLOCK_TIME = 100;
 }
