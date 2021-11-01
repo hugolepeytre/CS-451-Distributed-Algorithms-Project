@@ -1,38 +1,38 @@
 package cs451.Layers;
 
 import cs451.Parsing.Host;
-import cs451.Util.MessageList;
 import cs451.Util.PacketInfo;
 
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
-public class URBLayer implements LinkLayer {
-    private final PerfectLink l;
+public class FIFOLayer implements LinkLayer {
+    private final URBLayer l;
     private final LinkLayer upperLayer;
-    private final LinkedBlockingQueue<PacketInfo> treatBuffer;
-    private final ArrayList<MessageList> acks;
 
-    private final List<Host> hosts;
+    private final LinkedBlockingQueue<PacketInfo> treatBuffer;
+    private final ArrayList<PriorityQueue<PacketInfo>> pending;
+    private final ArrayList<Integer> nextToDeliver;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicInteger nextSeq = new AtomicInteger(0);
 
-    public URBLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
-        this.hosts = hosts;
+    public FIFOLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
         this.upperLayer = upperLayer;
-        l = new PerfectLink(port, hosts.size(), this);
+        this.l = new URBLayer(port, hosts, this);
         treatBuffer = new LinkedBlockingQueue<>();
-        acks = new ArrayList<>();
+        pending = new ArrayList<>();
+        nextToDeliver = new ArrayList<>();
         for (int i = 0; i < hosts.size(); i++) {
-            acks.add(new MessageList(hosts.size()));
+            pending.add(new PriorityQueue<>(Comparator.comparingInt(PacketInfo::getSequenceNumber)));
+            nextToDeliver.add(1);
         }
 
         running.set(true);
@@ -53,18 +53,19 @@ public class URBLayer implements LinkLayer {
     }
 
     private void treat(PacketInfo p) {
-        if (!p.isAck()) {
-            MessageList ml = acks.get(p.getOriginalSenderId() - 1);
-            if (!ml.wasForwarded(p)) {
-                int newSeqNum = nextSeqNum();
-                PacketInfo newP = p.becomeSender(newSeqNum);
-                sendMessage(newP);
-            }
-            PacketInfo toDeliver = ml.addAck(p);
-            if (toDeliver != null) {
-                upperLayer.deliver(toDeliver);
-            }
+        int oIdx = p.getOriginalSenderId() - 1;
+        PriorityQueue<PacketInfo> considered = pending.get(oIdx);
+        considered.add(p);
+
+        PacketInfo nextElem = considered.peek();
+        int next = nextToDeliver.get(oIdx);
+        while (nextElem != null && nextElem.getOriginalSequenceNumber() == next) {
+            considered.remove();
+            upperLayer.deliver(nextElem);
+            nextElem = considered.peek();
+            next++;
         }
+        nextToDeliver.add(oIdx, next + 1);
     }
 
     @Override
@@ -74,15 +75,7 @@ public class URBLayer implements LinkLayer {
 
     @Override
     public void sendMessage(PacketInfo p) {
-        int id = p.getSenderId();
-        for (Host h : hosts) {
-            if (h.getId() != id) {
-                l.sendMessage(p.newDestination(h.getId(), h.getPort(), h.getAddress()));
-            }
-        }
-        if (id == p.getOriginalSenderId()) {
-            acks.get(id - 1).addMessage(p);
-        }
+        l.sendMessage(p);
     }
 
     @Override
@@ -98,6 +91,6 @@ public class URBLayer implements LinkLayer {
 
     @Override
     public int nextSeqNum() {
-        return nextSeq.addAndGet(1);
+        return l.nextSeqNum();
     }
 }

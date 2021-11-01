@@ -96,9 +96,10 @@ public class PacketInfo implements Serializable {
     }
 
     public PacketInfo newDestination(int id, int port, InetAddress address) {
-        return new PacketInfo(id, port, address,
-                senderId, senderPort, senderAddress,
-                sequenceNumber, originalSequenceNumber, payload);
+        return new PacketInfo(senderId, senderPort, senderAddress,
+                originalSenderId, originalSenderPort, originalSenderAddress,
+                id, port, address,
+                sequenceNumber, originalSequenceNumber, false,  payload);
     }
 
     public PacketInfo becomeSender(int newSeqNumber) {

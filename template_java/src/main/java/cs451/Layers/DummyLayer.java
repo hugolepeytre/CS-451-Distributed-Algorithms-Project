@@ -25,7 +25,7 @@ public class DummyLayer implements LinkLayer {
 
     @Override
     public void deliver(PacketInfo p) {
-        if (!p.isAck()) log.add("d " + p.getSenderId() + " " + p.getOriginalSequenceNumber() + "\n");
+        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getOriginalSequenceNumber() + "\n");
     }
 
     @Override
