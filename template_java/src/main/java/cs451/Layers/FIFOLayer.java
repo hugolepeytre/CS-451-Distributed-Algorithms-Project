@@ -56,16 +56,21 @@ public class FIFOLayer implements LinkLayer {
         int oIdx = p.getOriginalSenderId() - 1;
         PriorityQueue<PacketInfo> considered = pending.get(oIdx);
         considered.add(p);
+        System.out.println("Containing " + considered.size() + " for sender " + (oIdx + 1));
 
         PacketInfo nextElem = considered.peek();
         int next = nextToDeliver.get(oIdx);
+        System.out.println("Next are : ");
+        for (int i: nextToDeliver) {
+            System.out.println(i);
+        }
         while (nextElem != null && nextElem.getOriginalSequenceNumber() == next) {
             considered.remove();
             upperLayer.deliver(nextElem);
             nextElem = considered.peek();
             next++;
         }
-        nextToDeliver.add(oIdx, next + 1);
+        nextToDeliver.set(oIdx, next);
     }
 
     @Override

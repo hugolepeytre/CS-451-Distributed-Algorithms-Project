@@ -1,14 +1,34 @@
-Parsing. PID : 6036
+Parsing. PID : 255
 Broadcasting and delivering messages...
-sent 1
-sent 2
-sent 3
-sent 4
-sent 5
-sent 6
-sent 7
-sent 8
-sent 9
-sent 10
+Containing 1 for sender 3
+Next are : 
+1
+1
+1
+Containing 1 for sender 3
+Next are : 
+1
+1
+2
+Containing 1 for sender 1
+Next are : 
+1
+1
+3
+Containing 1 for sender 1
+Next are : 
+2
+1
+3
+Containing 1 for sender 2
+Next are : 
+3
+1
+3
+Containing 1 for sender 2
+Next are : 
+3
+2
+3
 Immediately stopping network packet processing.
 Writing output.

@@ -12,13 +12,13 @@ import java.util.List;
 
 public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 1, only logs
-    private final URBLayer l;
+    private final FIFOLayer l;
 
     private final ArrayList<String> log;
     private final String output_path;
 
     public DummyLayer(int receivePort, List<Host> hosts, String outFile) throws SocketException {
-        l = new URBLayer(receivePort, hosts, this);
+        l = new FIFOLayer(receivePort, hosts, this);
         log = new ArrayList<>();
         output_path = outFile;
     }

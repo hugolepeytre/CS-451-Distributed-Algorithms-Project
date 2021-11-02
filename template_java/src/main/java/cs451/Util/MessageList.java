@@ -28,13 +28,13 @@ public class MessageList {
             acks.add(p.getTargetId());
             acks.add(p.getSenderId());
             acks.add(p.getOriginalSenderId());
-            acksList.add(seqNum - 1, acks);
+            acksList.set(seqNum - 1, acks);
         }
         else {
             acks.add(p.getSenderId());
             if (acks.size() >= ackLimit && !delivered.get(seqNum - 1)) {
                 returnVal = p;
-                delivered.add(seqNum - 1, true);
+                delivered.set(seqNum - 1, true);
             }
         }
         return returnVal;
