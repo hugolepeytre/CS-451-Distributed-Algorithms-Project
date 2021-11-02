@@ -14,9 +14,6 @@ import java.util.List;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
-// TODO : Test URB with tc.py on VM
-// TODO : Print timestamps for message broadcasts and deliveries and measure URB with 9 processes and 100 messages
-// TODO : Test FIFO with tc.py on VM
 // TODO : Print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
 // TODO : Profile
 
