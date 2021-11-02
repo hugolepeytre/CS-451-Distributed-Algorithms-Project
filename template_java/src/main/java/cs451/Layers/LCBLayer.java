@@ -4,9 +4,7 @@ import cs451.Parsing.Host;
 import cs451.Util.PacketInfo;
 
 import java.net.SocketException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,25 +12,32 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static cs451.Util.Constants.BLOCK_TIME;
 
 // TODO : Garbage Collection ?
-public class FIFOLayer implements LinkLayer {
+public class LCBLayer implements LinkLayer {
     private final URBLayer l;
     private final LinkLayer upperLayer;
 
     private final LinkedBlockingQueue<PacketInfo> treatBuffer;
     private final PriorityQueue<PacketInfo>[] pending;
-    private final int[] nextToDeliver;
+
+    private final TreeSet<Integer> notCausalHosts;
+    private final int[] vectorClock;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    public FIFOLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
+    public LCBLayer(int port, List<Host> hosts, TreeSet<Integer> influencers, LinkLayer upperLayer) throws SocketException {
         this.upperLayer = upperLayer;
         this.l = new URBLayer(port, hosts, this);
         treatBuffer = new LinkedBlockingQueue<>();
         pending = new PriorityQueue[hosts.size()];
-        nextToDeliver = new int[hosts.size()];
+        vectorClock = new int[hosts.size()];
+        notCausalHosts = new TreeSet<>();
         for (int i = 0; i < hosts.size(); i++) {
             pending[i] = new PriorityQueue<>(Comparator.comparingInt(PacketInfo::getOriginalSequenceNumber));
-            nextToDeliver[i] = 1;
+            notCausalHosts.add(i + 1);
+            vectorClock[i] = 0;
+        }
+        for (int in: influencers) {
+            notCausalHosts.remove(in);
         }
 
         running.set(true);
@@ -58,14 +63,12 @@ public class FIFOLayer implements LinkLayer {
         considered.add(p);
 
         PacketInfo nextElem = considered.peek();
-        int next = nextToDeliver[oIdx];
-        while (nextElem != null && nextElem.getOriginalSequenceNumber() == next) {
+        while (nextElem != null && nextElem.compareVectorClock(vectorClock)) {
             considered.remove();
             upperLayer.deliver(nextElem);
             nextElem = considered.peek();
-            next++;
+            vectorClock[oIdx]++;
         }
-        nextToDeliver[oIdx] = next;
     }
 
     @Override
@@ -75,6 +78,11 @@ public class FIFOLayer implements LinkLayer {
 
     @Override
     public void sendMessage(PacketInfo p) {
+        int[] newVClock = Arrays.copyOf(vectorClock, vectorClock.length);
+        for (int i: notCausalHosts) {
+            newVClock[i] = 0;
+        }
+        p.setVectorClock(newVClock);
         l.sendMessage(p);
     }
 

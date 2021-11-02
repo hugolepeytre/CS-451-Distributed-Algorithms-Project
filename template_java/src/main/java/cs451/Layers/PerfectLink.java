@@ -18,8 +18,8 @@ class PerfectLink implements LinkLayer {
     private final UDPLink l;
     private final LinkLayer upperLayer;
     private final LinkedBlockingQueue<PacketInfo> toTreat;
-    private final ArrayList<TreeSet<Integer>> delivered; // Not concurrent
-    private final ArrayList<ConcurrentSkipListSet<PacketInfo>> toBeAcked;
+    private final TreeSet<Integer>[] delivered; // Not concurrent
+    private final ConcurrentSkipListSet<PacketInfo>[] toBeAcked;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -28,11 +28,11 @@ class PerfectLink implements LinkLayer {
         this.l = new UDPLink(port, this);
 
         toTreat = new LinkedBlockingQueue<>();
-        toBeAcked = new ArrayList<>();
-        delivered = new ArrayList<>();
+        toBeAcked = new ConcurrentSkipListSet[nHosts];
+        delivered = new TreeSet[nHosts];
         for (int i = 0; i < nHosts; i++) {
-            delivered.add(new TreeSet<>());
-            toBeAcked.add(new ConcurrentSkipListSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber)));
+            delivered[i] = new TreeSet<>();
+            toBeAcked[i] = new ConcurrentSkipListSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber));
         }
 
         running.set(true);
@@ -70,13 +70,13 @@ class PerfectLink implements LinkLayer {
 
     private void treat(PacketInfo p) {
         if (p.isAck()) {
-            toBeAcked.get(p.getSenderId() - 1).remove(p);
+            toBeAcked[p.getSenderId() - 1].remove(p);
         } else {
             // Sending ACK
             l.sendMessage(p.getACK());
 
             // Logging and delivering
-            TreeSet<Integer> deliveredFromSender = delivered.get(p.getSenderId() - 1);
+            TreeSet<Integer> deliveredFromSender = delivered[p.getSenderId() - 1];
             int seqNum = p.getSequenceNumber();
             if (!deliveredFromSender.contains(seqNum)) {
                 deliveredFromSender.add(seqNum);
@@ -92,7 +92,7 @@ class PerfectLink implements LinkLayer {
 
     @Override
     public void sendMessage(PacketInfo p) {
-        toBeAcked.get(p.getTargetId() - 1).add(p);
+        toBeAcked[p.getTargetId() - 1].add(p);
         l.sendMessage(p);
     }
 

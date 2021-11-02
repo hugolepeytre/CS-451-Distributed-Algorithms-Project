@@ -9,16 +9,23 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 1, only logs
-    private final FIFOLayer l;
+    private final LinkLayer l;
 
     private final ArrayList<String> log;
     private final String output_path;
 
     public DummyLayer(int receivePort, List<Host> hosts, String outFile) throws SocketException {
         l = new FIFOLayer(receivePort, hosts, this);
+        log = new ArrayList<>();
+        output_path = outFile;
+    }
+
+    public DummyLayer(int receivePort, List<Host> hosts, TreeSet<Integer> influencers, String outFile) throws SocketException {
+        l = new LCBLayer(receivePort, hosts, influencers, this);
         log = new ArrayList<>();
         output_path = outFile;
     }

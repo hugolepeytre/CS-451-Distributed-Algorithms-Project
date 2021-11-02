@@ -2,15 +2,16 @@ package cs451.Parsing;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.TreeSet;
 
 public class Host {
-
     private static final String IP_START_REGEX = "/";
 
     private int id;
     private String ip;
     private int port = -1;
     private InetAddress address;
+    private TreeSet<Integer> influencers;
 
     public boolean populate(String idString, String ipString, String portString) {
         try {
@@ -58,6 +59,10 @@ public class Host {
 
     public InetAddress getAddress() { return address; }
 
+    public TreeSet<Integer> getInfluencers() {
+        return influencers;
+    }
+
     private static InetAddress getAddressFromString(String ip) {
         try {
             return InetAddress.getByName(ip);
@@ -68,4 +73,11 @@ public class Host {
         }
     }
 
+    public void populateInfluencers(String instruction) {
+        influencers = new TreeSet<>();
+        influencers.add(id);
+        for (String inf: instruction.split(" ")) {
+            influencers.add(Integer.parseInt(inf));
+        }
+    }
 }

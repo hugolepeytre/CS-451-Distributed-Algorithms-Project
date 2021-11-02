@@ -14,9 +14,9 @@ import java.util.List;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
-// TODO : Print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
-// TODO : Profile
-
+// TODO : Profile FIFO, print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
+// TODO : Test LCB (stress + tc)
+// TODO : Profile LCB
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
@@ -27,6 +27,8 @@ public class Main {
     private static InetAddress address;
 
     private static String outputPath;
+
+    private static final boolean FIFO_RUN = false;
 
     public static void main(String[] args) {
         long pid = ProcessHandle.current().pid();
@@ -42,7 +44,11 @@ public class Main {
 
     private static void runSender() {
         try {
-            link = new DummyLayer(port, hosts, outputPath);
+            if (FIFO_RUN)
+                link = new DummyLayer(port, hosts, outputPath);
+            else {
+                link = new DummyLayer(port, hosts, hosts.get(id + 1).getInfluencers(), outputPath);
+            }
             for (int i = 1; i <= nMessages; i++) {
                 String payload = "test";
                 PacketInfo toSend = new PacketInfo(id, port, address,
@@ -57,7 +63,13 @@ public class Main {
     private static void populate(String[] args) {
         Parser parser = new Parser(args);
         parser.parse();
-        String[] instructions = parser.instructions("fifo");
+        String[] instructions;
+        if (FIFO_RUN)
+            instructions = parser.instructions("fifo");
+        else {
+            instructions = parser.instructions("lcb");
+            parser.populateCausality(instructions);
+        }
 
         nMessages = Integer.parseInt(instructions[0]);
         hosts = parser.hosts();

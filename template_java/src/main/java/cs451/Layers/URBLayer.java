@@ -5,7 +5,6 @@ import cs451.Util.MessageList;
 import cs451.Util.PacketInfo;
 
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -14,11 +13,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
+// TODO : Garbage Collection ?
 public class URBLayer implements LinkLayer {
     private final PerfectLink l;
     private final LinkLayer upperLayer;
     private final LinkedBlockingQueue<PacketInfo> treatBuffer;
-    private final ArrayList<MessageList> acks;
+    private final MessageList[] acks;
 
     private final List<Host> hosts;
 
@@ -30,9 +30,9 @@ public class URBLayer implements LinkLayer {
         this.upperLayer = upperLayer;
         l = new PerfectLink(port, hosts.size(), this);
         treatBuffer = new LinkedBlockingQueue<>();
-        acks = new ArrayList<>();
-        for (int i = 0; i < hosts.size(); i++) {
-            acks.add(new MessageList(hosts.size()));
+        acks = new MessageList[hosts.size()];
+        for (int i = 0; i < acks.length; i++) {
+            acks[i] = new MessageList(hosts.size());
         }
 
         running.set(true);
@@ -54,7 +54,7 @@ public class URBLayer implements LinkLayer {
 
     private void treat(PacketInfo p) {
         if (!p.isAck()) {
-            MessageList ml = acks.get(p.getOriginalSenderId() - 1);
+            MessageList ml = acks[p.getOriginalSenderId() - 1];
             if (!ml.wasForwarded(p)) {
                 int newSeqNum = nextSeqNum();
                 PacketInfo newP = p.becomeSender(newSeqNum);
@@ -81,7 +81,7 @@ public class URBLayer implements LinkLayer {
             }
         }
         if (id == p.getOriginalSenderId()) {
-            acks.get(id - 1).addMessage(p);
+            acks[id - 1].addMessage(p);
         }
     }
 

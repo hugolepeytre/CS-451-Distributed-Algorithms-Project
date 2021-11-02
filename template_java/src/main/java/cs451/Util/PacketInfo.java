@@ -23,6 +23,7 @@ public class PacketInfo implements Serializable {
 
     private final boolean isAck;
     private final String payload;
+    private int[] vectorClock;
 
     // TODO : Only construct byte array once, then reuse
     // TODO : Try constructing byte array by hand and check time gained
@@ -160,39 +161,16 @@ public class PacketInfo implements Serializable {
     public String getPayload() {
         return payload;
     }
+
+    public boolean compareVectorClock(int[] otherVectorClock) {
+        for (int i = 0; i < vectorClock.length; i++) {
+            if (otherVectorClock[i] < vectorClock[i])
+                return false;
+        }
+        return true;
+    }
+
+    public void setVectorClock(int[] newVClock) {
+        vectorClock = newVClock;
+    }
 }
-
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(packetNumber, port, address);
-//    }
-
-//    @Override
-//    public boolean equals(Object obj) {
-//        if (obj == null) {
-//            return false;
-//        }
-//
-//        if (obj.getClass() != this.getClass()) {
-//            return false;
-//        }
-//
-//        final PacketInfo other = (PacketInfo) obj;
-//        if (!Objects.equals(this.originalSenderAddress, other.originalSenderAddress)) {
-//            return false;
-//        }
-//
-//        if (this.originalSenderId != other.originalSenderId) {
-//            return false;
-//        }
-//
-//        if (this.originalSenderPort != other.originalSenderPort) {
-//            return false;
-//        }
-//
-//        if (this.sequenceNumber != other.sequenceNumber || this.originalSequenceNumber != other.originalSequenceNumber) {
-//            return false;
-//        }
-//
-//        return Objects.equals(this.payload, other.payload) ;
-//    }

@@ -90,6 +90,12 @@ public class HostsParser {
         return hosts.size();
     }
 
+    public void populateCausality(String[] instructions) {
+        for (int i = 0; i < hosts.size(); i++) {
+            hosts.get(i).populateInfluencers(instructions[i+1]);
+        }
+    }
+
     static class HostsComparator implements Comparator<Host> {
 
         public int compare(Host a, Host b) {
