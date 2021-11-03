@@ -15,9 +15,11 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
-// TODO : Profile FIFO, print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
-// TODO : Test LCB (stress + tc + sleep for a bit between broadcasts)
-// TODO : Profile LCB
+// TODO : Test FIFO/LCB with max process + messages, stress, high traffic mayhem and measure correctness + speed
+// TODO : If need to improve speed :
+//  - profile (Improve Packet serialization ?)
+//  - make lower OrigSeqNum packets prioritary + wait longer to resend to slow hosts (PerfectLink)
+//  - Garbage collect (URB, FIFO, LCB)
 // TODO : Review all used data structures and make sure they make sense
 public class Main {
     private static LinkLayer link;

@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
-// TODO : Garbage Collection ?
 public class URBLayer implements LinkLayer {
     private final PerfectLink l;
     private final LinkLayer upperLayer;

@@ -25,8 +25,6 @@ public class PacketInfo implements Serializable {
     private final String payload;
     private int[] vectorClock;
 
-    // TODO : Only construct byte array once, then reuse
-    // TODO : Try constructing byte array by hand and check time gained
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int originalSenderId, int originalSenderPort, InetAddress originalSenderAddress,
                       int targetId, int targetPort, InetAddress targetAddress,

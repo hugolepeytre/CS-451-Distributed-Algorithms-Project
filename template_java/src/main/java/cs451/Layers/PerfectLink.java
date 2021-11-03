@@ -13,8 +13,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.Util.Constants.*;
 
-// TODO : Improve logic for re-sending non-acked packets with host-specific timer
-// TODO : Make lower-number packets prioritary
 class PerfectLink implements LinkLayer {
     private final UDPLink l;
     private final LinkLayer upperLayer;

@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
-// TODO : Garbage Collection ?
 public class LCBLayer implements LinkLayer {
     private final URBLayer l;
     private final LinkLayer upperLayer;
