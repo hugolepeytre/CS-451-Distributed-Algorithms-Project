@@ -11,8 +11,7 @@ public class MessageList {
     public MessageList(int nHosts) {
         acksList = new ArrayList<>();
         delivered = new ArrayList<>();
-        int canCrash = (nHosts - 1)/2;
-        ackLimit = canCrash + 2;
+        ackLimit = nHosts/2 + 1;
     }
 
     public PacketInfo addAck(PacketInfo p) {

@@ -52,7 +52,7 @@ public class Main {
                 link = new DummyLayer(port, hosts, hosts.get(id - 1).getInfluencers(), outputPath);
             }
             for (int i = 1; i <= nMessages; i++) {
-                Thread.sleep(10);
+                Thread.sleep(100);
                 String payload = "";
                 PacketInfo toSend = new PacketInfo(id, port, address,
                         0, 0, null, link.nextSeqNum(), i, payload, null);
