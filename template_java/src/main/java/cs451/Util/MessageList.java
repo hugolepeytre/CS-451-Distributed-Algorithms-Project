@@ -27,8 +27,11 @@ public class MessageList {
             acks = new TreeSet<>();
             acks.add(p.getTargetId());
             acks.add(p.getSenderId());
-            acks.add(p.getOriginalSenderId());
             acksList.set(seqNum - 1, acks);
+            if (acks.size() >= ackLimit) {
+                returnVal = p;
+                delivered.set(seqNum - 1, true);
+            }
         }
         else {
             acks.add(p.getSenderId());
