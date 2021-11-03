@@ -16,10 +16,9 @@ import java.util.List;
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
 // TODO : Profile FIFO, print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
-// TODO : Test LCB (stress + tc)
+// TODO : Test LCB (stress + tc + sleep for a bit between broadcasts)
 // TODO : Profile LCB
 // TODO : Review all used data structures and make sure they make sense
-// TODO : Make lowest number packets prioritary
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
@@ -53,12 +52,13 @@ public class Main {
                 link = new DummyLayer(port, hosts, hosts.get(id - 1).getInfluencers(), outputPath);
             }
             for (int i = 1; i <= nMessages; i++) {
+                Thread.sleep(10);
                 String payload = "";
                 PacketInfo toSend = new PacketInfo(id, port, address,
                         0, 0, null, link.nextSeqNum(), i, payload, null);
                 link.sendMessage(toSend);
             }
-        } catch (SocketException e) {
+        } catch (SocketException | InterruptedException e) {
             e.printStackTrace();
         }
     }
