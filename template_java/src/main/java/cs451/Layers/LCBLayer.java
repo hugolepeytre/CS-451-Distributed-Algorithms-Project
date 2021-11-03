@@ -21,6 +21,7 @@ public class LCBLayer implements LinkLayer {
 
     private final TreeSet<Integer> notCausalHosts;
     private final int[] vectorClock;
+    private int broadcast = 0;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -82,6 +83,7 @@ public class LCBLayer implements LinkLayer {
         for (int i: notCausalHosts) {
             newVClock[i - 1] = 0;
         }
+        newVClock[p.getOriginalSenderId() - 1] = broadcast++;
         p.setVectorClock(newVClock);
         l.sendMessage(p);
     }

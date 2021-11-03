@@ -18,6 +18,8 @@ import java.util.List;
 // TODO : Profile FIFO, print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
 // TODO : Test LCB (stress + tc)
 // TODO : Profile LCB
+// TODO : Review all used data structures and make sure they make sense
+// TODO : Make lowest number packets prioritary
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
@@ -51,8 +53,7 @@ public class Main {
                 link = new DummyLayer(port, hosts, hosts.get(id - 1).getInfluencers(), outputPath);
             }
             for (int i = 1; i <= nMessages; i++) {
-                System.out.println("Sending " + i);
-                String payload = "test";
+                String payload = "";
                 PacketInfo toSend = new PacketInfo(id, port, address,
                         0, 0, null, link.nextSeqNum(), i, payload, null);
                 link.sendMessage(toSend);

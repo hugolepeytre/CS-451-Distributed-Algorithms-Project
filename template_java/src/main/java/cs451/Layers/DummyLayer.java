@@ -10,23 +10,24 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DummyLayer implements LinkLayer {
-    // Dummy layer for submission 1, only logs
+    // Dummy layer for submission 3, only logs
     private final LinkLayer l;
 
-    private final ArrayList<String> log;
+    private final ConcurrentLinkedQueue<String> log;
     private final String output_path;
 
     public DummyLayer(int receivePort, List<Host> hosts, String outFile) throws SocketException {
         l = new FIFOLayer(receivePort, hosts, this);
-        log = new ArrayList<>();
+        log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
     }
 
     public DummyLayer(int receivePort, List<Host> hosts, TreeSet<Integer> influencers, String outFile) throws SocketException {
         l = new LCBLayer(receivePort, hosts, influencers, this);
-        log = new ArrayList<>();
+        log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
     }
 
