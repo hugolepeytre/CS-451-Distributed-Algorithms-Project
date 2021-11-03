@@ -30,7 +30,8 @@ public class PacketInfo implements Serializable {
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int originalSenderId, int originalSenderPort, InetAddress originalSenderAddress,
                       int targetId, int targetPort, InetAddress targetAddress,
-                      int sequenceNumber, int originalSequenceNumber, boolean isAck, String payload) {
+                      int sequenceNumber, int originalSequenceNumber, boolean isAck, String payload,
+                      int[] vectorClock) {
         this.senderId = senderId;
         this.senderPort = senderPort;
         this.senderAddress = senderAddress;
@@ -44,11 +45,13 @@ public class PacketInfo implements Serializable {
         this.originalSequenceNumber = originalSequenceNumber;
         this.isAck = isAck;
         this.payload = payload;
+        this.vectorClock = vectorClock;
     }
 
     public PacketInfo(int senderId, int senderPort, InetAddress senderAddress,
                       int targetId, int targetPort, InetAddress targetAddress,
-                      int sequenceNumber, int originalSequenceNumber, String payload) {
+                      int sequenceNumber, int originalSequenceNumber, String payload,
+                      int[] vectorClock) {
         this.senderId = senderId;
         this.senderPort = senderPort;
         this.senderAddress = senderAddress;
@@ -62,6 +65,7 @@ public class PacketInfo implements Serializable {
         this.originalSequenceNumber = originalSequenceNumber;
         this.isAck = false;
         this.payload = payload;
+        this.vectorClock = vectorClock;
     }
 
     public static PacketInfo fromPacket(DatagramPacket p) {
@@ -93,21 +97,21 @@ public class PacketInfo implements Serializable {
         return new PacketInfo(targetId, targetPort, targetAddress,
                               originalSenderId, originalSenderPort, originalSenderAddress,
                               senderId, senderPort, senderAddress,
-                              sequenceNumber, originalSequenceNumber, true, payload);
+                              sequenceNumber, originalSequenceNumber, true, payload, vectorClock);
     }
 
     public PacketInfo newDestination(int id, int port, InetAddress address) {
         return new PacketInfo(senderId, senderPort, senderAddress,
                 originalSenderId, originalSenderPort, originalSenderAddress,
                 id, port, address,
-                sequenceNumber, originalSequenceNumber, false,  payload);
+                sequenceNumber, originalSequenceNumber, false,  payload, vectorClock);
     }
 
     public PacketInfo becomeSender(int newSeqNumber) {
         return new PacketInfo(targetId, targetPort, targetAddress,
                 originalSenderId, originalSenderPort, originalSenderAddress,
                 0, 0, null,
-                newSeqNumber, originalSequenceNumber, false, payload);
+                newSeqNumber, originalSequenceNumber, false, payload, vectorClock);
     }
 
     public int getSenderId() {

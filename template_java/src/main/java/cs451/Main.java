@@ -13,7 +13,8 @@ import java.net.SocketException;
 import java.util.List;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
-// ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 3 -m 2
+// ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
+// ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
 // TODO : Profile FIFO, print timestamps for message broadcasts and deliveries and measure FIFO with 9 processes and 100 messages
 // TODO : Test LCB (stress + tc)
 // TODO : Profile LCB
@@ -47,12 +48,13 @@ public class Main {
             if (FIFO_RUN)
                 link = new DummyLayer(port, hosts, outputPath);
             else {
-                link = new DummyLayer(port, hosts, hosts.get(id + 1).getInfluencers(), outputPath);
+                link = new DummyLayer(port, hosts, hosts.get(id - 1).getInfluencers(), outputPath);
             }
             for (int i = 1; i <= nMessages; i++) {
+                System.out.println("Sending " + i);
                 String payload = "test";
                 PacketInfo toSend = new PacketInfo(id, port, address,
-                        0, 0, null, link.nextSeqNum(), i, payload);
+                        0, 0, null, link.nextSeqNum(), i, payload, null);
                 link.sendMessage(toSend);
             }
         } catch (SocketException e) {
@@ -71,7 +73,7 @@ public class Main {
             parser.populateCausality(instructions);
         }
 
-        nMessages = Integer.parseInt(instructions[0]);
+        nMessages = Integer.parseInt(instructions[0].trim());
         hosts = parser.hosts();
 
         id = parser.myId();

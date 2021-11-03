@@ -80,7 +80,7 @@ public class LCBLayer implements LinkLayer {
     public void sendMessage(PacketInfo p) {
         int[] newVClock = Arrays.copyOf(vectorClock, vectorClock.length);
         for (int i: notCausalHosts) {
-            newVClock[i] = 0;
+            newVClock[i - 1] = 0;
         }
         p.setVectorClock(newVClock);
         l.sendMessage(p);
