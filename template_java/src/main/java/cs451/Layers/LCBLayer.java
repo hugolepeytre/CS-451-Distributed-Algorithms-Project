@@ -26,7 +26,6 @@ public class LCBLayer implements LinkLayer {
 
     public LCBLayer(int port, List<Host> hosts, TreeSet<Integer> influencers, LinkLayer upperLayer) throws SocketException {
         this.upperLayer = upperLayer;
-        this.l = new URBLayer(port, hosts, this);
         treatBuffer = new LinkedBlockingQueue<>();
         pending = new PriorityQueue[hosts.size()];
         vectorClock = new int[hosts.size()];
@@ -42,6 +41,7 @@ public class LCBLayer implements LinkLayer {
 
         running.set(true);
         new Thread(this::treatLoop).start();
+        this.l = new URBLayer(port, hosts, this);
     }
 
     private void treatLoop() {

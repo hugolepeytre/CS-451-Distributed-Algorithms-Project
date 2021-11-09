@@ -1,5 +1,0 @@
-Exception in thread "Thread-3" java.lang.NullPointerException
-	at cs451.Layers.URBLayer.deliver(URBLayer.java:68)
-	at cs451.Layers.PerfectLink.treat(PerfectLink.java:110)
-	at cs451.Layers.PerfectLink.treatLoop(PerfectLink.java:87)
-	at java.base/java.lang.Thread.run(Thread.java:834)

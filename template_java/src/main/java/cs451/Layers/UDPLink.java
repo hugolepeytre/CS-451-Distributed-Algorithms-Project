@@ -5,7 +5,6 @@ import cs451.Util.PacketInfo;
 import java.io.IOException;
 import java.net.*;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,7 +12,8 @@ import static cs451.Util.Constants.*;
 
 public class UDPLink implements LinkLayer {
     private final PerfectLink upperLayer;
-    private final DatagramSocket socket;
+    private final DatagramSocket receiveSocket;
+    private final DatagramSocket sendSocket;
     private final byte[] receiveBuffer;
     private final LinkedBlockingDeque<PacketInfo> sendBuffer;
 
@@ -23,7 +23,8 @@ public class UDPLink implements LinkLayer {
 
     public UDPLink(int port, PerfectLink up) throws SocketException {
         upperLayer = up;
-        socket = new DatagramSocket(port);
+        receiveSocket = new DatagramSocket(port);
+        sendSocket = new DatagramSocket();
         receiveBuffer = new byte[BUF_SIZE];
         sendBuffer = new LinkedBlockingDeque<>();
 
@@ -36,14 +37,14 @@ public class UDPLink implements LinkLayer {
 
     private void sendLoop() {
         while (running.get()) {
-            System.out.println("send queue : " + sendBuffer.size());
             if (sendBuffer.size() < 10) {
+                System.out.println(sendBuffer.size());
                 upperLayer.retransmit();
             }
             try {
                 PacketInfo next = sendBuffer.poll(BLOCK_TIME, TimeUnit.MILLISECONDS);
                 if (next != null){
-                    socket.send(next.toPacket());
+                    sendSocket.send(next.toPacket());
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
@@ -56,8 +57,8 @@ public class UDPLink implements LinkLayer {
             DatagramPacket packet = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             boolean received = false;
             try {
-                socket.setSoTimeout(BLOCK_TIME);
-                socket.receive(packet);
+                receiveSocket.setSoTimeout(BLOCK_TIME);
+                receiveSocket.receive(packet);
                 received = true;
             } catch (SocketTimeoutException e) {
                 // Do nothing, we loop
@@ -87,7 +88,8 @@ public class UDPLink implements LinkLayer {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        socket.close();
+        receiveSocket.close();
+        sendSocket.close();
     }
 
     @Override

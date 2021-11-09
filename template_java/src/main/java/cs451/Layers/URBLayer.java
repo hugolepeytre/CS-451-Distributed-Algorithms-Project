@@ -25,7 +25,6 @@ public class URBLayer implements LinkLayer {
     public URBLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
         this.hosts = hosts;
         this.upperLayer = upperLayer;
-        l = new PerfectLink(port, hosts.size(), this);
         treatBuffer = new LinkedBlockingQueue<>();
         acks = new MessageList[hosts.size()];
         for (int i = 0; i < acks.length; i++) {
@@ -34,6 +33,7 @@ public class URBLayer implements LinkLayer {
 
         running.set(true);
         new Thread(this::treatLoop).start();
+        l = new PerfectLink(port, hosts.size(), this);
     }
 
     private void treatLoop() {

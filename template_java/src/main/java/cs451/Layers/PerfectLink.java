@@ -33,11 +33,10 @@ class PerfectLink implements LinkLayer {
     private final ConcurrentSkipListSet<PacketInfo>[] toBeAcked;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicBoolean retransmit = new AtomicBoolean(true);
+    private final AtomicBoolean retransmit = new AtomicBoolean(false);
 
     public PerfectLink(int port, int nHosts, LinkLayer up) throws SocketException {
         this.upperLayer = up;
-        this.l = new UDPLink(port, this);
 
         toTreat = new LinkedBlockingQueue<>();
         toBeAcked = new ConcurrentSkipListSet[nHosts];
@@ -52,6 +51,7 @@ class PerfectLink implements LinkLayer {
         running.set(true);
         new Thread(this::treatLoop).start();
         new Thread(this::retransmitLoop).start();
+        this.l = new UDPLink(port, this);
     }
 
     /**

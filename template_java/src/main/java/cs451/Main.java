@@ -15,17 +15,12 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
-// TODO : Test FIFO/LCB with max process + messages, stress, high traffic mayhem and measure correctness + speed
+// TODO : Test FIFO/LCB with max process + messages, high traffic mayhem and measure correctness + speed
 // TODO : If need to improve speed :
-//  - wait longer to resend to slow hosts (PerfectLink)
-//  - Have a separate socket for sending
+//  - Wait longer to resend to slow hosts (PerfectLink)
 //  - Group packets. Probably in UDPLink directly
-//  - profile (Improve Packet serialization ?)
+//  - Profile
 //  - Garbage collect (URB, FIFO, LCB)
-// TODO : Review all used data structures and make sure they make sense
-// TODO : Removed original sequence number, check that everything still works (in particular, do packets resent to sender
-//  by URB get treated differently from ACKs sent to them)
-// TODO : Does performance testing have network delays ? At least no processes are crashed/delayed
 public class Main {
     private static LinkLayer link;
     private static int nMessages;

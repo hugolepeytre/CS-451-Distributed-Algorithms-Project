@@ -151,7 +151,7 @@ public class PacketInfo implements Serializable {
                 System.arraycopy(ByteBuffer.allocate(4).putInt(vectorClock[i]).array(), 0, buf,42 + payloadBLength + 4*i,4);
             }
         }
-        return new DatagramPacket(buf, buf.length, targetAddress, targetPort);
+        return new DatagramPacket(buf, bufLength, targetAddress, targetPort);
     }
 
     public PacketInfo getACK() {

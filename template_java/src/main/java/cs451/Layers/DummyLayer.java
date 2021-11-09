@@ -20,17 +20,17 @@ public class DummyLayer implements LinkLayer {
     private final String output_path;
 
     public DummyLayer(int receivePort, List<Host> hosts, String outFile) throws SocketException {
-        l = new FIFOLayer(receivePort, hosts, this);
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
         begin = System.nanoTime();
+        l = new FIFOLayer(receivePort, hosts, this);
     }
 
     public DummyLayer(int receivePort, List<Host> hosts, TreeSet<Integer> influencers, String outFile) throws SocketException {
-        l = new LCBLayer(receivePort, hosts, influencers, this);
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
         begin = System.nanoTime();
+        l = new LCBLayer(receivePort, hosts, influencers, this);
     }
 
     @Override

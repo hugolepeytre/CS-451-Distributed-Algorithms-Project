@@ -22,8 +22,10 @@ public class Constants {
     public static final int PORTS_BEGIN = 11000;
     public static final String ACK = "ack";
     public static final long NANOSECS_IN_MS = 1_000_000;
-    public static final int BUF_SIZE = 1024;
     public static final int BYTES_IN_INT = 4;
+    public static final int PACKET_GROUP_SIZE = 4;
+    public static final int MAX_PACKET_SIZE = 1024;
+    public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + BYTES_IN_INT;
 
     // Magic numbers to fine-tune
     public static final int BLOCK_TIME = 10;
