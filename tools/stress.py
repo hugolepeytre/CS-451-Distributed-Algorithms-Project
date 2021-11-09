@@ -282,11 +282,11 @@ def main(processes, messages, runscript, testType, logsDir, testConfig):
         for (logicalPID, procHandle) in procs:
             print("Process with logicalPID {} has PID {}".format(logicalPID, procHandle.pid))
 
-        st.run()
-        print("StressTest is complete.")
-
-        print("Resuming stopped processes.")
-        st.continueStoppedProcesses()
+        # st.run()
+        # print("StressTest is complete.")
+        #
+        # print("Resuming stopped processes.")
+        # st.continueStoppedProcesses()
 
         input("Press `Enter` when all processes have finished processing messages.")
 

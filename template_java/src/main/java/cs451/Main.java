@@ -17,13 +17,14 @@ import java.util.List;
 // ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
 // TODO : Test FIFO/LCB with max process + messages, stress, high traffic mayhem and measure correctness + speed
 // TODO : If need to improve speed :
-//  - profile (Improve Packet serialization ?)
-//  - make lower OrigSeqNum packets prioritary + wait longer to resend to slow hosts (PerfectLink)
-//  - Garbage collect (URB, FIFO, LCB)
+//  - wait longer to resend to slow hosts (PerfectLink)
+//  - Have a separate socket for sending
 //  - Group packets. Probably in UDPLink directly
+//  - profile (Improve Packet serialization ?)
+//  - Garbage collect (URB, FIFO, LCB)
 // TODO : Review all used data structures and make sure they make sense
 // TODO : Removed original sequence number, check that everything still works (in particular, do packets resent to sender
-//  by URB get treated differently from ACKs sent to them
+//  by URB get treated differently from ACKs sent to them)
 // TODO : Does performance testing have network delays ? At least no processes are crashed/delayed
 public class Main {
     private static LinkLayer link;

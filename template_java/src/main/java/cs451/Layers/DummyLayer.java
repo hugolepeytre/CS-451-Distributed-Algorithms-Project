@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 3, only logs
     private final LinkLayer l;
+    private final long begin;
 
     private final ConcurrentLinkedQueue<String> log;
     private final String output_path;
@@ -22,23 +23,27 @@ public class DummyLayer implements LinkLayer {
         l = new FIFOLayer(receivePort, hosts, this);
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
+        begin = System.nanoTime();
     }
 
     public DummyLayer(int receivePort, List<Host> hosts, TreeSet<Integer> influencers, String outFile) throws SocketException {
         l = new LCBLayer(receivePort, hosts, influencers, this);
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
+        begin = System.nanoTime();
     }
 
     @Override
     public void deliver(PacketInfo p) {
-        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + "\n");
+        long currentTime = (System.nanoTime() - begin)/1_000_000_000;
+        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
     }
 
     @Override
     public void sendMessage(PacketInfo p) {
         l.sendMessage(p);
-        log.add("b " + p.getSequenceNumber() + "\n");
+        long currentTime = (System.nanoTime() - begin)/1_000_000_000;
+        log.add("b " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
     }
 
     @Override

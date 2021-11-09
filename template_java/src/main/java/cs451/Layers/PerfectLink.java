@@ -4,6 +4,7 @@ import cs451.Util.PacketInfo;
 
 import java.net.*;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,12 +27,13 @@ class PerfectLink implements LinkLayer {
     // with same seqNum, and both should be sent.
     private final LinkedBlockingQueue<PacketInfo> toTreat;
     // Not concurrent (treat loop). One set of delivered messages per host.
-    private final TreeSet<Integer>[] delivered;
+    private final TreeSet<PacketInfo>[] delivered;
     // Concurrent (retransmit loop + treat loop + send message). Add when sending a message, remove when treating
     // and go through when retransmitting. Sorted by UDP sequence number. Does not contain any acks, only sent packets.
     private final ConcurrentSkipListSet<PacketInfo>[] toBeAcked;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicBoolean retransmit = new AtomicBoolean(true);
 
     public PerfectLink(int port, int nHosts, LinkLayer up) throws SocketException {
         this.upperLayer = up;
@@ -41,8 +43,10 @@ class PerfectLink implements LinkLayer {
         toBeAcked = new ConcurrentSkipListSet[nHosts];
         delivered = new TreeSet[nHosts];
         for (int i = 0; i < nHosts; i++) {
-            delivered[i] = new TreeSet<>();
-            toBeAcked[i] = new ConcurrentSkipListSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber));
+            delivered[i] = new TreeSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber)
+                    .thenComparingInt(PacketInfo::getOriginalSenderId));
+            toBeAcked[i] = new ConcurrentSkipListSet<>(Comparator.comparingInt(PacketInfo::getSequenceNumber)
+                    .thenComparingInt(PacketInfo::getOriginalSenderId));
         }
 
         running.set(true);
@@ -53,19 +57,23 @@ class PerfectLink implements LinkLayer {
     /**
      *  While layer is running, add all un-acked packets to send buffer every BLOCK_TIME
      */
-    private void retransmitLoop() {
+    private void retransmitLoop() { // OPT : Only retransmit 100 messages per host every time
         while (running.get()) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(BLOCK_TIME);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            for (ConcurrentSkipListSet<PacketInfo> list : toBeAcked) {
-                for (PacketInfo p : list) {
-                    l.sendMessage(p);
+            if (retransmit.get()) {
+                for (ConcurrentSkipListSet<PacketInfo> list : toBeAcked) {
+                    int count = 0;
+                    for (Iterator<PacketInfo> it = list.iterator(); it.hasNext() && count < MAX_RETRANSMIT_PER_HOST; count++) {
+                        PacketInfo p = it.next();
+                        l.sendMessage(p);
+                    }
                 }
             }
+            retransmit.set(false);
         }
+    }
+
+    public void retransmit() {
+        retransmit.set(true);
     }
 
     /**
@@ -96,10 +104,9 @@ class PerfectLink implements LinkLayer {
             l.sendMessage(p.getACK());
 
             // Logging and delivering
-            TreeSet<Integer> deliveredFromSender = delivered[p.getSenderId() - 1];
-            int seqNum = p.getSequenceNumber();
-            if (!deliveredFromSender.contains(seqNum)) {
-                deliveredFromSender.add(seqNum);
+            TreeSet<PacketInfo> deliveredFromSender = delivered[p.getSenderId() - 1];
+            if (!deliveredFromSender.contains(p)) {
+                deliveredFromSender.add(p);
                 upperLayer.deliver(p);
             }
         }
@@ -119,7 +126,7 @@ class PerfectLink implements LinkLayer {
     @Override
     public void sendMessage(PacketInfo p) {
         toBeAcked[p.getTargetId() - 1].add(p);
-        l.sendMessage(p);
+        // l.sendMessage(p); OPT : Don't send right away, let retransmitLoop take care of which packets to send in priority
     }
 
     /**
