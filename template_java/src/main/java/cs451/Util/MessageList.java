@@ -16,7 +16,7 @@ public class MessageList {
 
     public PacketInfo addAck(PacketInfo p) {
         PacketInfo returnVal = null;
-        int seqNum = p.getOriginalSequenceNumber();
+        int seqNum = p.getSequenceNumber();
         while (acksList.size() < seqNum) {
             acksList.add(null);
             delivered.add(false);
@@ -44,8 +44,8 @@ public class MessageList {
     }
 
     public boolean wasForwarded(PacketInfo p) {
-        return p.getOriginalSequenceNumber() <= acksList.size()
-                && acksList.get(p.getOriginalSequenceNumber() - 1) != null;
+        return p.getSequenceNumber() <= acksList.size()
+                && acksList.get(p.getSequenceNumber() - 1) != null;
     }
 
     // Assumes messages are sent ordered by sequence number

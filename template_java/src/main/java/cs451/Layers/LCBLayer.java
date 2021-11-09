@@ -15,8 +15,8 @@ public class LCBLayer implements LinkLayer {
     private final URBLayer l;
     private final LinkLayer upperLayer;
 
-    private final LinkedBlockingQueue<PacketInfo> treatBuffer;
-    private final PriorityQueue<PacketInfo>[] pending;
+    private final LinkedBlockingQueue<PacketInfo> treatBuffer; // Accessed in deliver and treat loop
+    private final PriorityQueue<PacketInfo>[] pending; // Not concurrent, accessed only in treat loop
 
     private final TreeSet<Integer> notCausalHosts;
     private final int[] vectorClock;
@@ -32,7 +32,7 @@ public class LCBLayer implements LinkLayer {
         vectorClock = new int[hosts.size()];
         notCausalHosts = new TreeSet<>();
         for (int i = 0; i < hosts.size(); i++) {
-            pending[i] = new PriorityQueue<>(Comparator.comparingInt(PacketInfo::getOriginalSequenceNumber));
+            pending[i] = new PriorityQueue<>(Comparator.comparingInt(PacketInfo::getSequenceNumber));
             notCausalHosts.add(i + 1);
             vectorClock[i] = 0;
         }
@@ -91,15 +91,5 @@ public class LCBLayer implements LinkLayer {
     public void close() {
         running.set(false);
         l.close();
-    }
-
-    @Override
-    public boolean isDone() {
-        return false;
-    }
-
-    @Override
-    public int nextSeqNum() {
-        return l.nextSeqNum();
     }
 }

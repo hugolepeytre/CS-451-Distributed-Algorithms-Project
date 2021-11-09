@@ -10,8 +10,4 @@ public interface LinkLayer {
     void sendMessage(PacketInfo p);
 
     void close();
-
-    boolean isDone();
-
-    int nextSeqNum();
 }

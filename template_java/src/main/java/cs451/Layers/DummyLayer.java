@@ -32,29 +32,19 @@ public class DummyLayer implements LinkLayer {
 
     @Override
     public void deliver(PacketInfo p) {
-        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getOriginalSequenceNumber() + "\n");
+        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + "\n");
     }
 
     @Override
     public void sendMessage(PacketInfo p) {
         l.sendMessage(p);
-        log.add("b " + p.getOriginalSequenceNumber() + "\n");
+        log.add("b " + p.getSequenceNumber() + "\n");
     }
 
     @Override
     public void close() {
         l.close();
         writeOutput();
-    }
-
-    @Override
-    public boolean isDone() {
-        return l.isDone();
-    }
-
-    @Override
-    public int nextSeqNum() {
-        return l.nextSeqNum();
     }
 
     public void writeOutput() {

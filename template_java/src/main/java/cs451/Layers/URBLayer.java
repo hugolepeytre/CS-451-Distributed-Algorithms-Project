@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.BLOCK_TIME;
 
@@ -22,7 +21,6 @@ public class URBLayer implements LinkLayer {
     private final List<Host> hosts;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicInteger nextSeq = new AtomicInteger(0);
 
     public URBLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
         this.hosts = hosts;
@@ -55,8 +53,7 @@ public class URBLayer implements LinkLayer {
         if (!p.isAck()) {
             MessageList ml = acks[p.getOriginalSenderId() - 1];
             if (!ml.wasForwarded(p)) {
-                int newSeqNum = nextSeqNum();
-                PacketInfo newP = p.becomeSender(newSeqNum);
+                PacketInfo newP = p.becomeSender();
                 sendMessage(newP);
             }
             PacketInfo toDeliver = ml.addAck(p);
@@ -88,15 +85,5 @@ public class URBLayer implements LinkLayer {
     public void close() {
         running.set(false);
         l.close();
-    }
-
-    @Override
-    public boolean isDone() {
-        return false;
-    }
-
-    @Override
-    public int nextSeqNum() {
-        return nextSeq.addAndGet(1);
     }
 }

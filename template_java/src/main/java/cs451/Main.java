@@ -20,7 +20,11 @@ import java.util.List;
 //  - profile (Improve Packet serialization ?)
 //  - make lower OrigSeqNum packets prioritary + wait longer to resend to slow hosts (PerfectLink)
 //  - Garbage collect (URB, FIFO, LCB)
+//  - Group packets. Probably in UDPLink directly
 // TODO : Review all used data structures and make sure they make sense
+// TODO : Removed original sequence number, check that everything still works (in particular, do packets resent to sender
+//  by URB get treated differently from ACKs sent to them
+// TODO : Does performance testing have network delays ? At least no processes are crashed/delayed
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
@@ -32,7 +36,7 @@ public class Main {
 
     private static String outputPath;
 
-    private static final boolean FIFO_RUN = false;
+    private static final boolean FIFO_RUN = true;
 
     public static void main(String[] args) {
         long pid = ProcessHandle.current().pid();
@@ -54,10 +58,12 @@ public class Main {
                 link = new DummyLayer(port, hosts, hosts.get(id - 1).getInfluencers(), outputPath);
             }
             for (int i = 1; i <= nMessages; i++) {
-                Thread.sleep(100);
+                if (!FIFO_RUN) {
+                    Thread.sleep(100); // Used to test LCB
+                }
                 String payload = "";
-                PacketInfo toSend = new PacketInfo(id, port, address,
-                        0, 0, null, link.nextSeqNum(), i, payload, null);
+                PacketInfo toSend = PacketInfo.newPacket(id, port, address,
+                        0, 0, null, i, payload, null);
                 link.sendMessage(toSend);
             }
         } catch (SocketException | InterruptedException e) {
