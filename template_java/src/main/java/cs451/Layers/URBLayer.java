@@ -18,22 +18,22 @@ public class URBLayer implements LinkLayer {
     private final LinkedBlockingQueue<PacketInfo> treatBuffer;
     private final MessageList[] acks;
 
-    private final List<Host> hosts;
+    private final int nHosts;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     public URBLayer(int port, List<Host> hosts, LinkLayer upperLayer) throws SocketException {
-        this.hosts = hosts;
+        nHosts = hosts.size();
         this.upperLayer = upperLayer;
         treatBuffer = new LinkedBlockingQueue<>();
-        acks = new MessageList[hosts.size()];
+        acks = new MessageList[nHosts];
         for (int i = 0; i < acks.length; i++) {
-            acks[i] = new MessageList(hosts.size());
+            acks[i] = new MessageList(nHosts);
         }
 
         running.set(true);
         new Thread(this::treatLoop).start();
-        l = new PerfectLink(port, hosts.size(), this);
+        l = new PerfectLink(port, hosts, this);
     }
 
     private void treatLoop() {
@@ -71,9 +71,9 @@ public class URBLayer implements LinkLayer {
     @Override
     public void sendMessage(PacketInfo p) {
         int id = p.getSenderId();
-        for (Host h : hosts) {
-            if (h.getId() != id) {
-                l.sendMessage(p.newDestination(h.getId(), h.getPort(), h.getAddress()));
+        for (int i = 1; i <= nHosts; i++) {
+            if (i != id) {
+                l.sendMessage(p.newDestination(i));
             }
         }
         if (id == p.getOriginalSenderId()) {

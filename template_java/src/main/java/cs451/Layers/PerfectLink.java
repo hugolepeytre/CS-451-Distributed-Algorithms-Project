@@ -1,10 +1,12 @@
 package cs451.Layers;
 
+import cs451.Parsing.Host;
 import cs451.Util.PacketInfo;
 
 import java.net.*;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -35,9 +37,9 @@ class PerfectLink implements LinkLayer {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean retransmit = new AtomicBoolean(false);
 
-    public PerfectLink(int port, int nHosts, LinkLayer up) throws SocketException {
+    public PerfectLink(int port, List<Host> hosts, LinkLayer up) throws SocketException {
         this.upperLayer = up;
-
+        int nHosts = hosts.size();
         toTreat = new LinkedBlockingQueue<>();
         toBeAcked = new ConcurrentSkipListSet[nHosts];
         delivered = new TreeSet[nHosts];
@@ -51,7 +53,7 @@ class PerfectLink implements LinkLayer {
         running.set(true);
         new Thread(this::treatLoop).start();
         new Thread(this::retransmitLoop).start();
-        this.l = new UDPLink(port, this);
+        this.l = new UDPLink(port, hosts, this);
     }
 
     /**

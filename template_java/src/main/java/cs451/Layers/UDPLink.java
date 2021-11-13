@@ -1,9 +1,11 @@
 package cs451.Layers;
 
+import cs451.Parsing.Host;
 import cs451.Util.PacketInfo;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,13 +18,15 @@ public class UDPLink implements LinkLayer {
     private final DatagramSocket sendSocket;
     private final byte[] receiveBuffer;
     private final LinkedBlockingDeque<PacketInfo> sendBuffer;
+    private final List<Host> hosts;
 
     private final Thread listenThread;
     private final Thread sendThread;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    public UDPLink(int port, PerfectLink up) throws SocketException {
+    public UDPLink(int port, List<Host> hosts, PerfectLink up) throws SocketException {
         upperLayer = up;
+        this.hosts = hosts;
         receiveSocket = new DatagramSocket(port);
         sendSocket = new DatagramSocket();
         receiveBuffer = new byte[BUF_SIZE];
@@ -44,7 +48,10 @@ public class UDPLink implements LinkLayer {
             try {
                 PacketInfo next = sendBuffer.poll(BLOCK_TIME, TimeUnit.MILLISECONDS);
                 if (next != null){
-                    sendSocket.send(next.toPacket());
+                    byte[] b = next.toPacket();
+                    int targetId = next.getTargetId();
+                    Host targetHost = hosts.get(targetId - 1);
+                    sendSocket.send(new DatagramPacket(b, b.length, targetHost.getAddress(), targetHost.getPort()));
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();

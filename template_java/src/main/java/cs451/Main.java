@@ -16,12 +16,9 @@ import java.util.List;
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
 // TODO : If need to improve speed :
-//  - Maybe move stuff out of packetInfo (have instead a table linking ID to port+Address)
-//  - Reduce number of threads
-//  - Group packets in separate thread
-//  - Group packets in same thread
-//  - Create byte buffers in other threads so UDP send is the bottleneck
-//  - (With tc.py) Have 2 queues in UDP for acks and messages
+//  - Try 1 - Create byte buffers in other threads so UDP send is the bottleneck
+//  - Try 2 - Group packets in separate thread
+//  - Try 3 - Group packets in same thread (both at the same time)
 //  - Profile
 // TODO : Change output format before submission, check restore stress.py
 // Benchmarks without grouping : no tc : 10,200 - 0:15; with tc : 10,200 - 2:30
@@ -62,8 +59,7 @@ public class Main {
                     Thread.sleep(100); // Used to test LCB
                 }
                 String payload = "";
-                PacketInfo toSend = PacketInfo.newPacket(id, port, address,
-                        0, 0, null, i, payload, null);
+                PacketInfo toSend = PacketInfo.newPacket(id, 0, i, payload, null);
                 link.sendMessage(toSend);
             }
         } catch (SocketException | InterruptedException e) {
