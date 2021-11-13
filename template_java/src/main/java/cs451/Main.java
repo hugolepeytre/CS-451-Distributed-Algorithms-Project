@@ -14,13 +14,17 @@ import java.util.List;
 
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
-// ./stress.py -r ../template_java/run.sh -t lcausal -l ../template_java/stress -p 5 -m 10
-// TODO : Test FIFO/LCB with max process + messages, high traffic mayhem and measure correctness + speed
+// ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
 // TODO : If need to improve speed :
-//  - Wait longer to resend to slow hosts (PerfectLink)
-//  - Group packets. Probably in UDPLink directly
+//  - Maybe move stuff out of packetInfo (have instead a table linking ID to port+Address)
+//  - Reduce number of threads
+//  - Group packets in separate thread
+//  - Group packets in same thread
+//  - Create byte buffers in other threads so UDP send is the bottleneck
+//  - (With tc.py) Have 2 queues in UDP for acks and messages
 //  - Profile
-//  - Garbage collect (URB, FIFO, LCB)
+// TODO : Change output format before submission, check restore stress.py
+// Benchmarks without grouping : no tc : 10,200 - 0:15; with tc : 10,200 - 2:30
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
