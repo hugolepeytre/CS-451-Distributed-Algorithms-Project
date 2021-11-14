@@ -18,12 +18,11 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    public static final int PORTS_BEGIN = 11000;
-    public static final int PACKET_GROUP_SIZE = 8;
-    public static final int MAX_PACKET_SIZE = 512;
-    public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 1;
+    public static final int PACKET_GROUP_SIZE = 128;
+    public static final int MAX_PACKET_SIZE = 100;
+    public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 4;
 
     // Magic numbers to fine-tune
     public static final int BLOCK_TIME = 10;
-    public static final int RETRANSMIT_PER_HOST = 50;
+    public static final int RETRANSMIT_PER_HOST = 5*PACKET_GROUP_SIZE;
 }

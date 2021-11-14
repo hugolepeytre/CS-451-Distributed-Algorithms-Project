@@ -14,19 +14,16 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
-// TODO : If need to improve speed :
-//  - Try 1 - Group packets in same thread
-//  - Try 2 - Group packets in separate thread (both at the same time)
+// TODO : Try to not flood network : Adjust resend time to host response time
+
+// TODO : For LCB, augment packet size
+// TODO : For LCB, adjust Packet size and thus packet group size to number of hosts (payload size)
+
 // TODO : Change output format before submission, check restore stress.py
+
+// Hyperparameters : grouping size, processes, messages, tc.py (0/1)
 // Benchmarks without grouping : no tc : 10,200 - 0:15; with tc : 10,200 - 2:30
-// Benchmarks with sequential grouping size 1 : no tc : 10,200 - 0:33; with tc : 10,200 - >7:00
-// Benchmarks with sequential grouping size 4 : no tc : 10,200 - ?; with tc : 10,200 - >5:00
-// Benchmarks with sequential grouping size 8 : no tc : 10,200 - ?; with tc : 10,200 - ?
-// Benchmarks with sequential grouping size 16 : no tc : 10,200 - ?; with tc : 10,200 - ?
-// Benchmarks with parallel grouping size 1 : no tc : 10,200 - ?; with tc : 10,200 - ?
-// Benchmarks with parallel grouping size 4 : no tc : 10,200 - ?; with tc : 10,200 - ?
-// Benchmarks with parallel grouping size 8 : no tc : 10,200 - ?; with tc : 10,200 - ?
-// Benchmarks with parallel grouping size 16 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with sequential grouping size 64 : no tc : 10,200 - 0:06; with tc : 10,200 - 0:08
 public class Main {
     private static LinkLayer link;
     private static int nMessages;

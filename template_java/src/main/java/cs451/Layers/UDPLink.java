@@ -5,6 +5,7 @@ import cs451.Util.PacketInfo;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -48,11 +49,11 @@ public class UDPLink implements LinkLayer {
     private void sendLoop() {
         while (running.get()) {
             for (int i = 0; i < hosts.size(); i++) {
-                if (sendBuffers[i].size() < 10*PACKET_GROUP_SIZE) {
+                if (sendBuffers[i].size() < 2*PACKET_GROUP_SIZE) {
                     upperLayer.retransmit(i);
                 }
                 try {
-                    byte nSent = 0;
+                    int nSent = 0;
                     PacketInfo next;
                     do {
                         next = sendBuffers[i].poll();
@@ -62,7 +63,7 @@ public class UDPLink implements LinkLayer {
                             nSent++;
                         }
                     } while(nSent < PACKET_GROUP_SIZE && next != null);
-                    sendBuffer[0] = nSent;
+                    System.arraycopy(ByteBuffer.allocate(4).putInt(nSent).array(), 0, sendBuffer,0, 4);
                     sendSocket.send(new DatagramPacket(sendBuffer, BUF_SIZE,
                             hosts.get(i).getAddress(), hosts.get(i).getPort()));
                 } catch (IOException e) {
