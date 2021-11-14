@@ -34,8 +34,8 @@ public class FIFOLayer implements LinkLayer {
         }
 
         running.set(true);
-        new Thread(this::treatLoop).start();
         this.l = new URBLayer(port, hosts, this);
+        new Thread(this::treatLoop).start();
     }
 
     private void treatLoop() {

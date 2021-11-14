@@ -59,7 +59,7 @@ public class UDPLink implements LinkLayer {
                         next = sendBuffers[i].poll();
                         if (next != null) {
                             byte[] b = next.toPacket();
-                            System.arraycopy(b, 0, sendBuffer,1 + nSent*MAX_PACKET_SIZE, b.length);
+                            System.arraycopy(b, 0, sendBuffer,4 + nSent*MAX_PACKET_SIZE, b.length);
                             nSent++;
                         }
                     } while(nSent < PACKET_GROUP_SIZE && next != null);
@@ -88,10 +88,10 @@ public class UDPLink implements LinkLayer {
             }
             if (received) {
                 byte[] data = packet.getData();
-                int nSent = data[0];
+                int nSent = ByteBuffer.wrap(Arrays.copyOfRange(data, 0, 4)).getInt();
                 for (int i = 0; i < nSent; i++) {
                     upperLayer.deliver(PacketInfo.fromPacket(
-                            Arrays.copyOfRange(data, 1 + i*MAX_PACKET_SIZE, 1 + (i+1)*MAX_PACKET_SIZE)
+                            Arrays.copyOfRange(data, 4 + i*MAX_PACKET_SIZE, 4 + (i+1)*MAX_PACKET_SIZE)
                     ));
                 }
             }

@@ -32,8 +32,8 @@ public class URBLayer implements LinkLayer {
         }
 
         running.set(true);
-        new Thread(this::treatLoop).start();
         l = new PerfectLink(port, hosts, this);
+        new Thread(this::treatLoop).start();
     }
 
     private void treatLoop() {

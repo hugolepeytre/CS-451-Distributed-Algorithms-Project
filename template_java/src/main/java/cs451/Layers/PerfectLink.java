@@ -53,9 +53,9 @@ class PerfectLink implements LinkLayer {
         }
 
         running.set(true);
+        this.l = new UDPLink(port, hosts, this);
         new Thread(this::treatLoop).start();
         new Thread(this::retransmitLoop).start();
-        this.l = new UDPLink(port, hosts, this);
     }
 
     /**

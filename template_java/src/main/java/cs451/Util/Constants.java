@@ -18,7 +18,7 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    public static final int PACKET_GROUP_SIZE = 128;
+    public static final int PACKET_GROUP_SIZE = 512;
     public static final int MAX_PACKET_SIZE = 100;
     public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 4;
 

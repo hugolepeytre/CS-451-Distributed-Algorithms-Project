@@ -22,8 +22,39 @@ import java.util.List;
 // TODO : Change output format before submission, check restore stress.py
 
 // Hyperparameters : grouping size, processes, messages, tc.py (0/1)
+// Benchmarks :
+//      Grouping 4 :
+//          3, 10000 :
+//          5, 10000
+//          10, 1000
+//          10, 5000
+//          20, 100
+//      Grouping 32 :
+//          3, 10000 :
+//          5, 10000
+//          10, 1000
+//          10, 5000
+//          20, 100
+//      Grouping 64 :
+//          3, 10000 :
+//          5, 10000
+//          10, 1000
+//          10, 5000
+//          20, 100
+//      Grouping 128 :
+//          3, 10000 : 23, 6
+//          5, 10000 : 77, 28
+//          10, 1000 : 79, 33
+//          10, 5000 : 450, 189
+//          20, 100 : 48, 35
+//      Grouping 512 :
+//          3, 10000 : 8, 6
+//          5, 10000 : 29, 20
+//          10, 1000 : 34, 25
+//          10, 5000 :
+//          20, 100 :
+//      Grouping 1024 : Does not work, I think because too big packets
 // Benchmarks without grouping : no tc : 10,200 - 0:15; with tc : 10,200 - 2:30
-// Benchmarks with sequential grouping size 64 : no tc : 10,200 - 0:06; with tc : 10,200 - 0:08
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
