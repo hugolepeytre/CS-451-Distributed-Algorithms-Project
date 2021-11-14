@@ -19,8 +19,6 @@ public class UDPLink implements LinkLayer {
     private final DatagramSocket sendSocket;
     private final byte[] receiveBuffer;
     private final byte[] sendBuffer;
-    private final long[] lastSends;
-    private final int[] waitTimes;
     private final LinkedBlockingDeque<PacketInfo>[] sendBuffers;
     private final List<Host> hosts;
 
@@ -37,13 +35,8 @@ public class UDPLink implements LinkLayer {
         sendBuffer = new byte[BUF_SIZE];
         int nHosts = hosts.size();
         sendBuffers = new LinkedBlockingDeque[nHosts];
-        lastSends = new long[nHosts];
-        waitTimes = new int[nHosts];
-        long now = System.nanoTime();
         for (int i = 0; i < nHosts; i++) {
             sendBuffers[i] = new LinkedBlockingDeque<>();
-            lastSends[i] = now;
-            waitTimes[i] = BASE_RESET_MILLIS;
         }
 
         running.set(true);
@@ -56,42 +49,28 @@ public class UDPLink implements LinkLayer {
     private void sendLoop() {
         while (running.get()) {
             for (int i = 0; i < hosts.size(); i++) {
-                if (timeToResend(i)) {
-                    if (sendBuffers[i].size() < 2 * PACKET_GROUP_SIZE) {
-                        upperLayer.retransmit(i);
-                    }
-                    try {
-                        int nSent = 0;
-                        PacketInfo next;
-                        do {
-                            next = sendBuffers[i].poll();
-                            if (next != null) {
-                                byte[] b = next.toPacket();
-                                System.arraycopy(b, 0, sendBuffer, 4 + nSent * MAX_PACKET_SIZE, b.length);
-                                nSent++;
-                            }
-                        } while (nSent < PACKET_GROUP_SIZE && next != null);
-                        System.arraycopy(ByteBuffer.allocate(4).putInt(nSent).array(), 0, sendBuffer, 0, 4);
-                        sendSocket.send(new DatagramPacket(sendBuffer, BUF_SIZE,
-                                hosts.get(i).getAddress(), hosts.get(i).getPort()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                if (sendBuffers[i].size() < 2 * PACKET_GROUP_SIZE) {
+                    upperLayer.retransmit(i);
+                }
+                try {
+                    int nSent = 0;
+                    PacketInfo next;
+                    do {
+                        next = sendBuffers[i].poll();
+                        if (next != null) {
+                            byte[] b = next.toPacket();
+                            System.arraycopy(b, 0, sendBuffer, 4 + nSent * MAX_PACKET_SIZE, b.length);
+                            nSent++;
+                        }
+                    } while (nSent < PACKET_GROUP_SIZE && next != null);
+                    System.arraycopy(ByteBuffer.allocate(4).putInt(nSent).array(), 0, sendBuffer, 0, 4);
+                    sendSocket.send(new DatagramPacket(sendBuffer, BUF_SIZE,
+                            hosts.get(i).getAddress(), hosts.get(i).getPort()));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
-    }
-
-    private boolean timeToResend(int i) {
-        long now = System.nanoTime();
-        long milisSinceLastResend = (now - lastSends[i])/1_000_000;
-        boolean r = milisSinceLastResend > waitTimes[i];
-        if (r) {
-            lastSends[i] = now;
-            waitTimes[i] *= 2;
-        }
-        return r;
-
     }
 
     private void listenLoop() {
@@ -110,11 +89,10 @@ public class UDPLink implements LinkLayer {
             if (received) {
                 byte[] data = packet.getData();
                 int nSent = ByteBuffer.wrap(Arrays.copyOfRange(data, 0, 4)).getInt();
-                PacketInfo rP;
                 for (int i = 0; i < nSent; i++) {
-                    rP = PacketInfo.fromPacket(Arrays.copyOfRange(data, 4 + i*MAX_PACKET_SIZE, 4 + (i+1)*MAX_PACKET_SIZE));
-                    if (i == 0) { waitTimes[rP.getSenderId() - 1] = BASE_RESET_MILLIS; }
-                    upperLayer.deliver(rP);
+                    upperLayer.deliver(PacketInfo.fromPacket(
+                            Arrays.copyOfRange(data, 4 + i*MAX_PACKET_SIZE, 4 + (i+1)*MAX_PACKET_SIZE)
+                    ));
                 }
             }
         }

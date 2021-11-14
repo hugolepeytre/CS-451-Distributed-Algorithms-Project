@@ -36,7 +36,6 @@ class PerfectLink implements LinkLayer {
     private final int nHosts;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicBoolean retransmit = new AtomicBoolean(false);
     private final ConcurrentSkipListSet<Integer> retransmitTargets = new ConcurrentSkipListSet<>();
 
     public PerfectLink(int port, List<Host> hosts, LinkLayer up) throws SocketException {
@@ -71,14 +70,13 @@ class PerfectLink implements LinkLayer {
                         PacketInfo p = it.next();
                         l.sendMessage(p);
                     }
+                    retransmitTargets.remove(i);
                 }
-                retransmitTargets.remove(i);
             }
         }
     }
 
     public void retransmit(int i) {
-        retransmit.set(true);
         retransmitTargets.add(i);
     }
 

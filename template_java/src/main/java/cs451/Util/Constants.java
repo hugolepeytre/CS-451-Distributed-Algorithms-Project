@@ -23,7 +23,6 @@ public class Constants {
     public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 4;
 
     // Magic numbers to fine-tune
-    public static final int BASE_RESET_MILLIS = 1;
     public static final int BLOCK_TIME = 10;
     public static final int BROADCAST_BATCH_SIZE = 10000;
     public static final int RETRANSMIT_PER_HOST = 5*PACKET_GROUP_SIZE;
