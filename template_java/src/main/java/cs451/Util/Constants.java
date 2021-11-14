@@ -18,17 +18,12 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    public static final int PORTS_WIDTH = 1000;
     public static final int PORTS_BEGIN = 11000;
-    public static final String ACK = "ack";
-    public static final long NANOSECS_IN_MS = 1_000_000;
-    public static final int BYTES_IN_INT = 4;
-    public static final int PACKET_GROUP_SIZE = 4;
-    public static final int MAX_PACKET_SIZE = 1024;
-    public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + BYTES_IN_INT;
+    public static final int PACKET_GROUP_SIZE = 8;
+    public static final int MAX_PACKET_SIZE = 512;
+    public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 1;
 
     // Magic numbers to fine-tune
     public static final int BLOCK_TIME = 10;
-    public static final int RETRANSMIT_WAIT_TIME = 4000;
-    public static final int MAX_RETRANSMIT_PER_HOST = 100;
+    public static final int RETRANSMIT_PER_HOST = 50;
 }

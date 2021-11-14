@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.*;
 
@@ -36,6 +37,7 @@ class PerfectLink implements LinkLayer {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean retransmit = new AtomicBoolean(false);
+    private final AtomicInteger retransmitTarget = new AtomicInteger(0);
 
     public PerfectLink(int port, List<Host> hosts, LinkLayer up) throws SocketException {
         this.upperLayer = up;
@@ -62,20 +64,20 @@ class PerfectLink implements LinkLayer {
     private void retransmitLoop() { // OPT : Only retransmit 100 messages per host every time
         while (running.get()) {
             if (retransmit.get()) {
-                for (ConcurrentSkipListSet<PacketInfo> list : toBeAcked) {
-                    int count = 0;
-                    for (Iterator<PacketInfo> it = list.iterator(); it.hasNext() && count < MAX_RETRANSMIT_PER_HOST; count++) {
-                        PacketInfo p = it.next();
-                        l.sendMessage(p);
-                    }
+                ConcurrentSkipListSet<PacketInfo> list = toBeAcked[retransmitTarget.get()];
+                int count = 0;
+                for (Iterator<PacketInfo> it = list.iterator(); it.hasNext() && count < RETRANSMIT_PER_HOST; count++) {
+                    PacketInfo p = it.next();
+                    l.sendMessage(p);
                 }
             }
             retransmit.set(false);
         }
     }
 
-    public void retransmit() {
+    public void retransmit(int i) {
         retransmit.set(true);
+        retransmitTarget.set(i);
     }
 
     /**

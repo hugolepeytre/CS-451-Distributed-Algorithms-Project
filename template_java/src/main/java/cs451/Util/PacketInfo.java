@@ -33,12 +33,9 @@ public class PacketInfo implements Serializable {
         return new PacketInfo(senderId, senderId, targetId, sequenceNumber, false, payload, vectorClock);
     }
 
-    public static PacketInfo fromPacket(DatagramPacket p) {
+    public static PacketInfo fromPacket(byte[] data) {
         // Serialized as : sender ID, target ID, originalSenderId, seqNum
         // payloadLength, payload, boolean hasVclock, vclockLength, vectorClock
-        int l = p.getLength();
-        byte[] data = Arrays.copyOfRange(p.getData(), 0, l);
-
         int senderId = ByteBuffer.wrap(Arrays.copyOfRange(data, 0, 4)).getInt();
         int targetId = ByteBuffer.wrap(Arrays.copyOfRange(data, 4, 8)).getInt();
         int originalSenderId = ByteBuffer.wrap(Arrays.copyOfRange(data, 8, 12)).getInt();

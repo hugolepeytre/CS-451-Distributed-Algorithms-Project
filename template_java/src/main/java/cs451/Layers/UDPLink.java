@@ -5,9 +5,9 @@ import cs451.Util.PacketInfo;
 
 import java.io.IOException;
 import java.net.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cs451.Util.Constants.*;
@@ -17,7 +17,8 @@ public class UDPLink implements LinkLayer {
     private final DatagramSocket receiveSocket;
     private final DatagramSocket sendSocket;
     private final byte[] receiveBuffer;
-    private final LinkedBlockingDeque<PacketInfo> sendBuffer;
+    private final byte[] sendBuffer;
+    private final LinkedBlockingDeque<PacketInfo>[] sendBuffers;
     private final List<Host> hosts;
 
     private final Thread listenThread;
@@ -30,7 +31,12 @@ public class UDPLink implements LinkLayer {
         receiveSocket = new DatagramSocket(port);
         sendSocket = new DatagramSocket();
         receiveBuffer = new byte[BUF_SIZE];
-        sendBuffer = new LinkedBlockingDeque<>();
+        sendBuffer = new byte[BUF_SIZE];
+        int nHosts = hosts.size();
+        sendBuffers = new LinkedBlockingDeque[nHosts];
+        for (int i = 0; i < nHosts; i++) {
+            sendBuffers[i] = new LinkedBlockingDeque<>();
+        }
 
         running.set(true);
         listenThread = new Thread(this::listenLoop);
@@ -41,20 +47,27 @@ public class UDPLink implements LinkLayer {
 
     private void sendLoop() {
         while (running.get()) {
-            if (sendBuffer.size() < 10) {
-                System.out.println(sendBuffer.size());
-                upperLayer.retransmit();
-            }
-            try {
-                PacketInfo next = sendBuffer.poll(BLOCK_TIME, TimeUnit.MILLISECONDS);
-                if (next != null){
-                    byte[] b = next.toPacket();
-                    int targetId = next.getTargetId();
-                    Host targetHost = hosts.get(targetId - 1);
-                    sendSocket.send(new DatagramPacket(b, b.length, targetHost.getAddress(), targetHost.getPort()));
+            for (int i = 0; i < hosts.size(); i++) {
+                if (sendBuffers[i].size() < 10*PACKET_GROUP_SIZE) {
+                    upperLayer.retransmit(i);
                 }
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                try {
+                    byte nSent = 0;
+                    PacketInfo next;
+                    do {
+                        next = sendBuffers[i].poll();
+                        if (next != null) {
+                            byte[] b = next.toPacket();
+                            System.arraycopy(b, 0, sendBuffer,1 + nSent*MAX_PACKET_SIZE, b.length);
+                            nSent++;
+                        }
+                    } while(nSent < PACKET_GROUP_SIZE && next != null);
+                    sendBuffer[0] = nSent;
+                    sendSocket.send(new DatagramPacket(sendBuffer, BUF_SIZE,
+                            hosts.get(i).getAddress(), hosts.get(i).getPort()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -72,17 +85,25 @@ public class UDPLink implements LinkLayer {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (received) upperLayer.deliver(PacketInfo.fromPacket(packet));
+            if (received) {
+                byte[] data = packet.getData();
+                int nSent = data[0];
+                for (int i = 0; i < nSent; i++) {
+                    upperLayer.deliver(PacketInfo.fromPacket(
+                            Arrays.copyOfRange(data, 1 + i*MAX_PACKET_SIZE, 1 + (i+1)*MAX_PACKET_SIZE)
+                    ));
+                }
+            }
         }
     }
 
     @Override
     public void sendMessage(PacketInfo p) { // OPT : Make acks prioritary
         if (p.isAck()) {
-            sendBuffer.addFirst(p);
+            sendBuffers[p.getTargetId() - 1].addFirst(p);
         }
         else {
-            sendBuffer.addLast(p);
+            sendBuffers[p.getTargetId() - 1].addLast(p);
         }
     }
 

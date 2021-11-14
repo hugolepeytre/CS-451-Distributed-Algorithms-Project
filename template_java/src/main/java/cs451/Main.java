@@ -8,7 +8,6 @@ import cs451.Util.PacketInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.List;
 
@@ -20,6 +19,14 @@ import java.util.List;
 //  - Try 2 - Group packets in separate thread (both at the same time)
 // TODO : Change output format before submission, check restore stress.py
 // Benchmarks without grouping : no tc : 10,200 - 0:15; with tc : 10,200 - 2:30
+// Benchmarks with sequential grouping size 1 : no tc : 10,200 - 0:33; with tc : 10,200 - >7:00
+// Benchmarks with sequential grouping size 4 : no tc : 10,200 - ?; with tc : 10,200 - >5:00
+// Benchmarks with sequential grouping size 8 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with sequential grouping size 16 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with parallel grouping size 1 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with parallel grouping size 4 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with parallel grouping size 8 : no tc : 10,200 - ?; with tc : 10,200 - ?
+// Benchmarks with parallel grouping size 16 : no tc : 10,200 - ?; with tc : 10,200 - ?
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
@@ -27,7 +34,6 @@ public class Main {
 
     private static int id;
     private static int port;
-    private static InetAddress address;
 
     private static String outputPath;
 
@@ -81,7 +87,6 @@ public class Main {
 
         id = parser.myId();
         port = parser.getPort(id);
-        address = parser.getAddress(id);
 
         outputPath = parser.output();
     }
