@@ -24,6 +24,7 @@ public class Constants {
 
     // Magic numbers to fine-tune
     public static final int BLOCK_TIME = 10;
-    public static final int BROADCAST_BATCH_SIZE = 10000;
+    public static final int BASE_RESET_MILLIS = 10;
+    public static final int BROADCAST_BATCH_SIZE = 1000;
     public static final int RETRANSMIT_PER_HOST = 5*PACKET_GROUP_SIZE;
 }

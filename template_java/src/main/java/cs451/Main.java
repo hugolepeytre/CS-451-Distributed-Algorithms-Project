@@ -11,50 +11,10 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
-// TODO : Increase performance for the case with 20 processes and 1000 messages
-
-// TODO : All benchmarks + FIFO Validation
-// TODO : Submit (change output format before submission, check restore stress.py)
+// TODO : Submit (check restore stress.py)
 
 // TODO : For LCB, augment packet size
 // TODO : For LCB, adjust Packet size and thus packet group size to number of hosts (payload size)
-
-// Benchmarks :
-//      Grouping 4 :
-//          3, 10000 :
-//          5, 10000 :
-//          10, 1000 :
-//          10, 5000 :
-//          20, 100 :
-//          20, 1000 :
-//      Grouping 32 :
-//          3, 10000 :
-//          5, 10000 :
-//          10, 1000 :
-//          10, 5000 :
-//          20, 100 :
-//          20, 1000 : est 20m
-//      Grouping 128 :
-//          3, 10000 :
-//          5, 10000 :
-//          10, 1000 :
-//          10, 5000 :
-//          20, 100 :
-//          20, 1000 :
-//      Grouping 512 :
-//          3, 10000 :
-//          5, 10000 :
-//          10, 1000 :
-//          10, 5000 :
-//          20, 100 :
-//          20, 1000 :
-//      Grouping 1024 :
-//          3, 10000 :
-//          5, 10000 :
-//          10, 1000 :
-//          10, 5000 :
-//          20, 100 :
-//          20, 1000 :
 
 public class Main {
     private static LinkLayer link;

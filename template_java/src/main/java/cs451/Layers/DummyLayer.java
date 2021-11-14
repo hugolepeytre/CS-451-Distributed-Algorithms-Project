@@ -16,7 +16,7 @@ import static cs451.Util.Constants.BROADCAST_BATCH_SIZE;
 public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 3, only logs
     private final LinkLayer l;
-    private final long begin;
+    // private final long begin;
 
     private ConcurrentLinkedQueue<String> log;
     private final String output_path;
@@ -32,7 +32,7 @@ public class DummyLayer implements LinkLayer {
     public DummyLayer(int receivePort, List<Host> hosts, int nMessages, int id, String outFile) throws SocketException {
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
-        begin = System.nanoTime();
+        // begin = System.nanoTime();
         createOutputFile(output_path);
         nHosts = hosts.size();
         this.nMessages = nMessages;
@@ -44,7 +44,7 @@ public class DummyLayer implements LinkLayer {
     public DummyLayer(int receivePort, List<Host> hosts, int nMessages, int id, TreeSet<Integer> influencers, String outFile) throws SocketException {
         log = new ConcurrentLinkedQueue<>();
         output_path = outFile;
-        begin = System.nanoTime();
+        // begin = System.nanoTime();
         createOutputFile(output_path);
         nHosts = hosts.size();
         this.nMessages = nMessages;
@@ -55,11 +55,11 @@ public class DummyLayer implements LinkLayer {
 
     @Override
     public void deliver(PacketInfo p) {
-        long currentTime = (System.nanoTime() - begin)/1_000_000_000;
-        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
+        // long currentTime = (System.nanoTime() - begin)/1_000_000_000;
+        // if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
+        if (!p.isAck()) log.add("d " + p.getOriginalSenderId() + " " + p.getSequenceNumber() + "\n");
         if (p.getSequenceNumber() == nextThreshold) {
             if (++nHostsReachedThreshold >= (nHosts/2 + 1)) {
-                System.out.println(nextThreshold + "|" + nHostsReachedThreshold + "|" + nSent);
                 sendBatch();
             }
         }
@@ -68,8 +68,9 @@ public class DummyLayer implements LinkLayer {
     @Override
     public void sendMessage(PacketInfo p) {
         l.sendMessage(p);
-        long currentTime = (System.nanoTime() - begin)/1_000_000_000;
-        log.add("b " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
+        // long currentTime = (System.nanoTime() - begin)/1_000_000_000;
+        // log.add("b " + p.getSequenceNumber() + ", seconds since start : " + currentTime + "\n");
+        log.add("b " + p.getSequenceNumber() + "\n");
     }
 
     @Override
