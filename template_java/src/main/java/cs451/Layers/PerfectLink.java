@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs451.Util.Constants.*;
 
@@ -34,14 +33,15 @@ class PerfectLink implements LinkLayer {
     // Concurrent (retransmit loop + treat loop + send message). Add when sending a message, remove when treating
     // and go through when retransmitting. Sorted by UDP sequence number. Does not contain any acks, only sent packets.
     private final ConcurrentSkipListSet<PacketInfo>[] toBeAcked;
+    private final int nHosts;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean retransmit = new AtomicBoolean(false);
-    private final AtomicInteger retransmitTarget = new AtomicInteger(0);
+    private final ConcurrentSkipListSet<Integer> retransmitTargets = new ConcurrentSkipListSet<>();
 
     public PerfectLink(int port, List<Host> hosts, LinkLayer up) throws SocketException {
         this.upperLayer = up;
-        int nHosts = hosts.size();
+        nHosts = hosts.size();
         toTreat = new LinkedBlockingQueue<>();
         toBeAcked = new ConcurrentSkipListSet[nHosts];
         delivered = new TreeSet[nHosts];
@@ -63,21 +63,23 @@ class PerfectLink implements LinkLayer {
      */
     private void retransmitLoop() { // OPT : Only retransmit 100 messages per host every time
         while (running.get()) {
-            if (retransmit.get()) {
-                ConcurrentSkipListSet<PacketInfo> list = toBeAcked[retransmitTarget.get()];
-                int count = 0;
-                for (Iterator<PacketInfo> it = list.iterator(); it.hasNext() && count < RETRANSMIT_PER_HOST; count++) {
-                    PacketInfo p = it.next();
-                    l.sendMessage(p);
+            for (int i = 0; i < nHosts; i++) {
+                if (retransmitTargets.contains(i)) {
+                    ConcurrentSkipListSet<PacketInfo> list = toBeAcked[i];
+                    int count = 0;
+                    for (Iterator<PacketInfo> it = list.iterator(); it.hasNext() && count < RETRANSMIT_PER_HOST; count++) {
+                        PacketInfo p = it.next();
+                        l.sendMessage(p);
+                    }
                 }
+                retransmitTargets.remove(i);
             }
-            retransmit.set(false);
         }
     }
 
     public void retransmit(int i) {
         retransmit.set(true);
-        retransmitTarget.set(i);
+        retransmitTargets.add(i);
     }
 
     /**

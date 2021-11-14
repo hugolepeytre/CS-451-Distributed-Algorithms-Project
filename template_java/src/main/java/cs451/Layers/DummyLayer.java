@@ -12,7 +12,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static cs451.Util.Constants.BROADCAST_BATCH_SIZE;
-import static cs451.Util.Constants.MAX_PACKET_SIZE;
 
 public class DummyLayer implements LinkLayer {
     // Dummy layer for submission 3, only logs

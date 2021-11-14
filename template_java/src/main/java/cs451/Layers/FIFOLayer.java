@@ -43,6 +43,7 @@ public class FIFOLayer implements LinkLayer {
             try {
                 PacketInfo next = treatBuffer.poll(BLOCK_TIME, TimeUnit.MILLISECONDS);
                 if (next != null) {
+                    System.out.println("recivède : " + next.getSequenceNumber() + "|" + next.getSenderId() + "|" + next.getOriginalSenderId() + "|");
                     treat(next);
                 }
             } catch (InterruptedException e) {

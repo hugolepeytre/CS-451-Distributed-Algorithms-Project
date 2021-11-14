@@ -11,54 +11,51 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
-// TODO : Try to not flood network : Adjust resend time to host response time.
-//  (In UDP, for each host wait until timer, double timer when resend, and half timer when receive)
-//  Also when requesting new packets, maybe do it sequentially and delete retransmit loop
+// TODO : Increase performance for the case with 20 processes and 1000 messages
 
-// TODO : Redo correctness tests (running fifo_validation)
-// TODO : Change output format before submission, check restore stress.py
+// TODO : All benchmarks + FIFO Validation
+// TODO : Submit (change output format before submission, check restore stress.py)
 
 // TODO : For LCB, augment packet size
 // TODO : For LCB, adjust Packet size and thus packet group size to number of hosts (payload size)
 
-// Hyperparameters : grouping size, processes, messages, tc.py (0/1)
 // Benchmarks :
 //      Grouping 4 :
-//          3, 10000 :
-//          5, 10000
-//          10, 1000
-//          10, 5000
-//          20, 100
-//      Grouping 32 :
-//          3, 10000 :
-//          5, 10000
-//          10, 1000
-//          10, 5000
-//          20, 100
-//      Grouping 64 :
 //          3, 10000 :
 //          5, 10000 :
 //          10, 1000 :
 //          10, 5000 :
 //          20, 100 :
-//      Grouping 128 :
-//          3, 10000 : 23, 6
-//          5, 10000 : 77, 28
-//          10, 1000 : 79, 33
-//          10, 5000 : 450, 189
-//          20, 100 : 48, 35
-//      Grouping 512 :
-//          3, 10000 : 8, 6
-//          5, 10000 : 29, 20
-//          10, 1000 : 34, 25
-//          10, 5000 :
-//          20, 100 :
-//      Grouping 1024 : (Highest possible packet size for FIFO)
-//          3, 10000 : 6, 4
+//          20, 1000 :
+//      Grouping 32 :
+//          3, 10000 :
 //          5, 10000 :
-//          10, 1000 : 18, 16
+//          10, 1000 :
 //          10, 5000 :
 //          20, 100 :
+//          20, 1000 :
+//      Grouping 128 :
+//          3, 10000 :
+//          5, 10000 :
+//          10, 1000 :
+//          10, 5000 :
+//          20, 100 :
+//          20, 1000 :
+//      Grouping 512 :
+//          3, 10000 :
+//          5, 10000 :
+//          10, 1000 :
+//          10, 5000 :
+//          20, 100 :
+//          20, 1000 :
+//      Grouping 1024 :
+//          3, 10000 :
+//          5, 10000 :
+//          10, 1000 :
+//          10, 5000 :
+//          20, 100 :
+//          20, 1000 :
+
 public class Main {
     private static LinkLayer link;
     private static int nMessages;
