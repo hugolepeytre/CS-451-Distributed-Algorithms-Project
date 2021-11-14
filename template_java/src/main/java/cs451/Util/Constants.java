@@ -18,11 +18,12 @@ public class Constants {
     // indexes for config
     public static final int CONFIG_VALUE = 6;
 
-    public static final int PACKET_GROUP_SIZE = 512;
-    public static final int MAX_PACKET_SIZE = 100;
+    public static final int PACKET_GROUP_SIZE = 1024;
+    public static final int MAX_PACKET_SIZE = 50; // 26 bytes constant size, 24 bytes for payload
     public static final int BUF_SIZE = PACKET_GROUP_SIZE*MAX_PACKET_SIZE + 4;
 
     // Magic numbers to fine-tune
     public static final int BLOCK_TIME = 10;
+    public static final int BROADCAST_BATCH_SIZE = 10000;
     public static final int RETRANSMIT_PER_HOST = 5*PACKET_GROUP_SIZE;
 }

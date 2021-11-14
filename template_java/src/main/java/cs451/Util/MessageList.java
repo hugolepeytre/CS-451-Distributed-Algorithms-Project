@@ -21,7 +21,8 @@ public class MessageList {
             acksList.add(null);
             delivered.add(false);
         }
-
+//        System.out.println(seqNum);
+//        System.out.println(acksList.size() + " | " + delivered.size());
         TreeSet<Integer> acks = acksList.get(seqNum - 1);
         if (acks == null) {
             acks = new TreeSet<>();

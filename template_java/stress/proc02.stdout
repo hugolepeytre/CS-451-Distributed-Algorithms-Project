@@ -1,4 +1,9 @@
-Parsing. PID : 18110
+Parsing. PID : 21166
 Broadcasting and delivering messages...
+1000|6|1001
+2000|6|2001
+3000|6|3001
+4000|6|4001
+5000|6|5001
 Immediately stopping network packet processing.
 Writing output.
