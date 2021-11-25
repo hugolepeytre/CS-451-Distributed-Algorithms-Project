@@ -4,6 +4,7 @@ import cs451.Layers.DummyLayer;
 import cs451.Layers.LinkLayer;
 import cs451.Parsing.Host;
 import cs451.Parsing.Parser;
+import cs451.Util.Constants;
 
 import java.net.SocketException;
 import java.util.List;
@@ -11,10 +12,9 @@ import java.util.List;
 // ./run.sh --id 1 --hosts ../config_files/hosts.txt --output ../config_files/outputs/1.txt ../config_files/configs/perfect_link.txt
 // ./stress.py -r ../template_java/run.sh -t perfect -l ../template_java/stress -p 2 -m 3
 // ./stress.py -r ../template_java/run.sh -t fifo -l ../template_java/stress -p 10 -m 200
-// TODO : Submit (check restore stress.py)
-
 // TODO : For LCB, augment packet size
 // TODO : For LCB, adjust Packet size and thus packet group size to number of hosts (payload size)
+// Simplifying assumptions : None for now
 
 public class Main {
     private static LinkLayer link;
@@ -26,7 +26,7 @@ public class Main {
 
     private static String outputPath;
 
-    private static final boolean FIFO_RUN = true;
+    private static final boolean FIFO_RUN = false;
 
     public static void main(String[] args) {
         long pid = ProcessHandle.current().pid();
@@ -34,6 +34,8 @@ public class Main {
 
         populate(args);
         initSignalHandlers();
+        if (!FIFO_RUN)
+            Constants.setGroupSize(hosts.size());
 
         System.out.print("Broadcasting and delivering messages...\n");
         runSender();

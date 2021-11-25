@@ -48,10 +48,10 @@ public class PacketInfo implements Serializable {
         boolean hasVClock = data[21 + payloadLength] == 1;
         int[] vectorClock = null;
         if (hasVClock) {
-            int vClockLength = ByteBuffer.wrap(Arrays.copyOfRange(data, 22, 26)).getInt();
+            int vClockLength = ByteBuffer.wrap(Arrays.copyOfRange(data, 22 + payloadLength, 26 + payloadLength)).getInt();
             vectorClock = new int[vClockLength];
             for (int i = 0; i < vClockLength; i++) {
-                vectorClock[i] = ByteBuffer.wrap(Arrays.copyOfRange(data, 26 + 4*i, 30 + 4*i)).getInt();
+                vectorClock[i] = ByteBuffer.wrap(Arrays.copyOfRange(data, 26 + 4*i + payloadLength, 30 + 4*i + payloadLength)).getInt();
             }
         }
 
